@@ -1,0 +1,66 @@
+{
+  "name": "vibeguard",
+  "displayName": "VibeGuard",
+  "description": "Plain-English risk cards for Claude Code permission prompts. Shows what a command actually does, in a real popup, before you approve it.",
+  "version": "1.0.0",
+  "publisher": "prashanthnanand",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "keywords": ["claude", "claude code", "security", "permissions", "safety"],
+  "main": "./src/extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "vibeguard.showPanel",
+        "title": "VibeGuard: Show recent activity"
+      },
+      {
+        "command": "vibeguard.clearHistory",
+        "title": "VibeGuard: Clear history"
+      },
+      {
+        "command": "vibeguard.status",
+        "title": "VibeGuard: Check connection to Claude Code"
+      }
+    ],
+    "configuration": {
+      "title": "VibeGuard",
+      "properties": {
+        "vibeguard.popupOn": {
+          "type": "string",
+          "enum": ["red", "orangeAndRed", "all", "off"],
+          "enumDescriptions": [
+            "Only high-risk actions",
+            "High-risk and check-first actions",
+            "Every action Claude asks permission for",
+            "Never pop up; the panel and status bar still update"
+          ],
+          "default": "orangeAndRed",
+          "description": "Which risk levels raise a popup."
+        },
+        "vibeguard.revealPanelOn": {
+          "type": "string",
+          "enum": ["red", "orangeAndRed", "all", "never"],
+          "default": "red",
+          "description": "Which risk levels automatically open the VibeGuard panel."
+        },
+        "vibeguard.statusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the VibeGuard indicator in the status bar."
+        }
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prashanthnanand/vibeguard.git"
+  },
+  "scripts": {
+    "package": "npx --yes @vscode/vsce package --no-dependencies"
+  }
+}

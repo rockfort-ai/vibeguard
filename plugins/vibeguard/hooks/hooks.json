@@ -1,0 +1,17 @@
+{
+  "description": "VibeGuard — plain-English risk cards inside Claude Code permission prompts",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/vibeguard.js\"",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}
