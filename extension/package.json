@@ -1,10 +1,23 @@
 {
   "name": "vibeguard",
   "displayName": "VibeGuard",
-  "description": "Plain-English risk cards for Claude Code permission prompts. Shows what a command actually does, in a real popup, before you approve it.",
+  "description": "Know what Claude Code is about to do, before you approve it. Plain-English safety ratings in a real popup. By Rockfort AI.",
   "version": "1.0.0",
-  "publisher": "prashanthnanand",
+  "publisher": "rockfort-ai",
   "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#0A1B36",
+    "theme": "dark"
+  },
+  "author": {
+    "name": "Rockfort AI",
+    "url": "https://rockfort.ai"
+  },
+  "homepage": "https://github.com/rockfort-ai/vibeguard",
+  "bugs": {
+    "url": "https://github.com/rockfort-ai/vibeguard/issues"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -58,7 +71,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/prashanthnanand/vibeguard.git"
+    "url": "https://github.com/rockfort-ai/vibeguard.git"
   },
   "scripts": {
     "package": "npx --yes @vscode/vsce package --no-dependencies"

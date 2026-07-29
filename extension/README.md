@@ -3,8 +3,11 @@
 Shows what Claude Code is about to do, in plain English, in a real popup —
 before you approve it.
 
+A [Rockfort AI](https://rockfort.ai) product · [← Back to the main README](../README.md)
+
 Requires the [VibeGuard Claude Code plugin](../plugins/vibeguard), which does
-the classifying. This extension displays the result.
+the classifying. This extension displays the result. Install that first —
+two lines, [here](../README.md#install-in-30-seconds).
 
 ## Why it exists
 

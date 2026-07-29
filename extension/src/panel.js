@@ -66,9 +66,12 @@ function html(webview) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   :root {
+    /* Severity colours stay semantic — they mean danger, not brand. */
     --red: #e5484d;
     --orange: #f76b15;
     --green: #30a46c;
+    /* Rockfort AI: Signal */
+    --signal: #2979FF;
   }
   body {
     font-family: var(--vscode-font-family);
@@ -141,13 +144,21 @@ function html(webview) {
     color: var(--vscode-button-secondaryForeground);
   }
   button.deny { background: var(--red); color: #fff; }
-  button.allow { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
+  button.allow { background: var(--signal); color: #fff; }
   .waiting { font-size: 11px; opacity: .6; margin-top: 8px; }
+  footer {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px solid var(--vscode-panel-border, rgba(128,128,128,.3));
+    font-size: 11px;
+    opacity: .5;
+  }
 </style>
 </head>
 <body>
 <h1>Recent activity</h1>
 <div id="list"></div>
+<footer>VibeGuard &middot; Rockfort AI</footer>
 <script nonce="${nonce}">
   const vscode = acquireVsCodeApi();
   const list = document.getElementById('list');

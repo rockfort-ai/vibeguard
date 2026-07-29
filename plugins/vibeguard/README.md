@@ -1,12 +1,17 @@
-# VibeGuard (Claude Code plugin)
+# VibeGuard — Claude Code plugin
 
 Plain-English explanations + severity ratings for Claude Code permission prompts,
 so non-technical users understand what they're approving.
 
+A [Rockfort AI](https://rockfort.ai) product · [← Back to the main README](../../README.md)
+
+> **Just want to install it?** The [main README](../../README.md#install-in-30-seconds) has
+> the two-step version. This page is about how the classifier works, and how to add rules.
+
 ## Install
 
-```sh
-/plugin marketplace add prashanthnanand/vibeguard
+```
+/plugin marketplace add rockfort-ai/vibeguard
 /plugin install vibeguard@vibeguard
 ```
 

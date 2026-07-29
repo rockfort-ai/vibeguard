@@ -1,11 +1,14 @@
 {
   "name": "vibeguard",
+  "displayName": "VibeGuard",
   "version": "1.0.0",
-  "description": "Plain-English explanations and severity ratings on Claude Code permission prompts, so non-technical users understand what they are approving. Green / orange / red cards for shell commands, file edits, and web fetches, with an optional editor popup.",
+  "description": "Know what Claude Code is about to do, before you approve it. Adds a plain-English explanation and a green / orange / red safety rating to every permission prompt, so you never have to guess what a command means.",
   "author": {
-    "name": "Prashanth",
-    "email": "149305395+prashanthnanand@users.noreply.github.com"
+    "name": "Rockfort AI",
+    "url": "https://rockfort.ai"
   },
-  "homepage": "https://github.com/prashanthnanand/vibeguard",
-  "keywords": ["security", "permissions", "hooks", "safety", "beginners"]
+  "homepage": "https://github.com/rockfort-ai/vibeguard",
+  "repository": "https://github.com/rockfort-ai/vibeguard",
+  "license": "MIT",
+  "keywords": ["security", "permissions", "hooks", "safety", "beginners", "vibe-coding"]
 }
