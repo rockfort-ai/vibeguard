@@ -76,10 +76,42 @@ function run() {
   // An empty skill must hash deterministically rather than throw.
   if (hashSkill([]) !== hashSkill([])) { fail++; console.log('\x1b[31m✗\x1b[0m empty-hash unstable'); }
 
+  // A skill pinned in another project must not be reported as removed just
+  // because you are standing somewhere else.
+  {
+    const { audit } = require('../lib/skills');
+    const os = require('os');
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'vg-scope-'));
+    const realDir = path.join(FIXTURES, 'clean-formatter');
+    fs.mkdirSync(path.join(home, '.vibeguard'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.vibeguard', 'skills.lock.json'), JSON.stringify({
+      version: 1,
+      pinned: {
+        'project:elsewhere': { hash: 'x', dir: realDir },            // installed, out of scope
+        'project:actually-gone': { hash: 'x', dir: '/nope/gone' },   // really deleted
+      },
+    }));
+    const prevHome = process.env.HOME;
+    process.env.HOME = home;
+    delete require.cache[require.resolve('../lib/skills')];
+    const { audit: scoped } = require('../lib/skills');
+    const res = scoped(home, policy);
+    process.env.HOME = prevHome;
+    delete require.cache[require.resolve('../lib/skills')];
+
+    const quiet = !res.removed.includes('project:elsewhere');
+    const loud = res.removed.includes('project:actually-gone');
+    if (!quiet) fail++;
+    if (!loud) fail++;
+    console.log(`${quiet ? '\x1b[32m✓\x1b[0m' : '\x1b[31m✗\x1b[0m'} out-of-scope skill is not "removed"`);
+    console.log(`${loud ? '\x1b[32m✓\x1b[0m' : '\x1b[31m✗\x1b[0m'} genuinely deleted skill still is`);
+    fs.rmSync(home, { recursive: true, force: true });
+  }
+
   const plat = platformTests();
   fail += plat.fail;
 
-  const total = CASES.length + 1 + plat.total;
+  const total = CASES.length + 3 + plat.total;
   console.log(`\n${total - fail}/${total} passed`);
   return fail;
 }

@@ -432,7 +432,25 @@ function audit(cwd, policy) {
       signals: signals(s, policy),
     };
   });
-  const removed = Object.keys(lock.pinned).filter((id) => !skills.some((s) => s.id === id));
+  // "Removed" means gone from disk, not merely out of scope. A skill pinned
+  // while you were in another project is still installed — it just is not
+  // loadable from here, and reporting it as missing produces a false alarm on
+  // every directory change. False alarms are how a security tool teaches people
+  // to ignore it.
+  //
+  // The same directory can also be pinned under two ids (user: and project:)
+  // depending on where you were standing the first time it was seen, so
+  // resolved paths are what get compared, not ids.
+  const liveDirs = new Set(skills.map((s) => path.resolve(s.dir)));
+  const removed = Object.entries(lock.pinned)
+    .filter(([id, v]) => {
+      if (skills.some((s) => s.id === id)) return false;
+      if (v && v.dir && liveDirs.has(path.resolve(v.dir))) return false; // same skill, different id
+      if (v && v.dir && fs.existsSync(v.dir)) return false; // installed, just not in scope here
+      return true;
+    })
+    .map(([id]) => id);
+
   return { rows, removed, lock };
 }
 

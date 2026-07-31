@@ -1,7 +1,7 @@
 {
   "name": "vibeguard",
   "version": "1.1.0",
-  "builtAt": "2026-07-31T10:54:47.170Z",
+  "builtAt": "2026-07-31T12:46:34.541Z",
   "builtBy": "vg package",
   "files": [
     {
@@ -66,7 +66,7 @@
     },
     {
       "file": "lib/skills.js",
-      "sha256": "4fdc9d42f645caef"
+      "sha256": "2477f9ebfae3b36a"
     },
     {
       "file": "policy/policy.json",
@@ -126,7 +126,7 @@
     },
     {
       "file": "test/skills.test.js",
-      "sha256": "3ef24b48d72bfc0c"
+      "sha256": "d46e22e5af0137cb"
     }
   ]
 }
