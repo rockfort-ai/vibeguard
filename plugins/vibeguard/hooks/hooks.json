@@ -1,5 +1,5 @@
 {
-  "description": "VibeGuard — plain-English risk cards inside Claude Code permission prompts",
+  "description": "VibeGuard — permission cards, egress enforcement, and skill drift detection",
   "hooks": {
     "PreToolUse": [
       {
@@ -7,8 +7,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/vibeguard.js\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/adapters/claude-code.js\"",
             "timeout": 20
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/adapters/claude-code-session.js\"",
+            "timeout": 15
           }
         ]
       }

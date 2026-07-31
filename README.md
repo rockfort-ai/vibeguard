@@ -18,6 +18,8 @@
   &nbsp;·&nbsp;
   <a href="#what-the-colours-mean">The colours</a>
   &nbsp;·&nbsp;
+  <a href="#it-also-watches-the-skills-you-install">Skills</a>
+  &nbsp;·&nbsp;
   <a href="plugins/vibeguard/README.md">How it works</a>
 </p>
 
@@ -46,6 +48,15 @@ It adds one line of plain English, and a colour, to every prompt:
 ```
 
 Now it's a question you can answer.
+
+And for the small number of things that are **never** okay — your passwords being sent to a stranger's website, a script downloaded off the internet and run without being read — it doesn't ask. It just says no.
+
+```
+🔴 HIGH RISK · Reads your credentials file (.env) and sends it to webhook.site.
+               This is how credentials leak. → Blocked.
+```
+
+That's the whole product. It stays quiet the rest of the time.
 
 ---
 
@@ -80,7 +91,7 @@ From now on, every time Claude Code asks permission for something, you'll see a 
 
 Claude Code, and Node.js — which you already have if you installed Claude Code with npm. Nothing else to install; VibeGuard has zero dependencies.
 
-macOS and Linux are fully supported. On Windows everything works except the desktop notification for high-risk items.
+macOS, Linux and Windows are all supported. On Windows everything works except the desktop notification banner for high-risk items — the coloured card in the prompt itself is identical everywhere, and that's the part that matters.
 </details>
 
 <details>
@@ -103,7 +114,35 @@ macOS and Linux are fully supported. On Windows everything works except the desk
 
 Red items always ask, even if you've told Claude Code to stop asking about that kind of command — and they also raise a desktop notification, so you'll catch them when you're looking somewhere else.
 
-Everything Claude Code would run silently on its own stays silent. VibeGuard adds explanations to prompts you were already going to see; it never creates new ones.
+Everything Claude Code would run silently on its own stays silent. VibeGuard adds explanations to prompts you were already going to see, and creates new ones only for the handful of things listed below.
+
+---
+
+## The things it stops without asking
+
+There is a short list where "are you sure?" is the wrong question, because the answer is always no. VibeGuard blocks these outright:
+
+| | |
+|---|---|
+| **Your secrets leaving the machine** | Anything that reads a password file, key, or token *and* sends it somewhere in the same breath |
+| **Scripts run straight off the internet** | The `curl … \| bash` pattern — code that runs before anyone, including you, has read it |
+| **Known drop-off points** | The specific sites used to collect stolen data — paste bins, webhook catchers, anonymous file drops |
+
+This list is deliberately tiny. Everything else it explains and lets you decide.
+
+---
+
+## It also watches the skills you install
+
+Claude Code can install **skills** — small bundles of instructions written by other people. They're useful, and they're also unreviewed code running with your agent's permissions.
+
+VibeGuard takes a fingerprint of every skill on your machine the first time it sees it. If one of them **changes later**, you get told, and you're asked before anything from it runs.
+
+That matters because of a specific trick: publish something helpful, wait for people to install it, then quietly change it. Nothing re-checks a skill after you've said yes to it once. This does.
+
+Run **`/vibeguard-skills`** in Claude Code any time to see what's installed and whether anything has changed.
+
+> VibeGuard reports what it finds. It never tells you a skill is "safe" — nobody can honestly promise that, and the scanners that do have been [publicly bypassed](plugins/vibeguard/COVERAGE.md).
 
 ---
 
@@ -121,29 +160,50 @@ You can also turn on **Approve / Deny buttons** and answer the prompt from the p
 
 Worth being explicit, since it's a security tool:
 
-- It **never sends anything anywhere.** No servers, no analytics, no network requests at all.
-- It **never runs commands.** It only reads what Claude Code is proposing and describes it.
+- It **never sends anything anywhere.** No servers, no analytics, no network requests at all. The one file it writes is a local log you can delete.
+- It **never runs commands.** It reads what Claude Code is proposing, describes it, and sometimes says no.
 - It has **zero dependencies** — nothing gets pulled in from the internet.
-- It **can't make Claude Code less safe.** It only ever adds explanation to a prompt, or asks you about something that would otherwise have been silent.
+- It **can't make Claude Code less safe.** It only ever adds explanation, asks about something that would otherwise have been silent, or blocks something outright. It cannot approve anything on your behalf.
+- It **doesn't judge your skills for you.** It reports what it sees and tells you when something changed. It never claims a skill is safe.
 
-The whole thing is about 400 lines of plain JavaScript, and you're welcome to read it: [`lib/classify.js`](plugins/vibeguard/lib/classify.js) holds every rule.
+It's plain JavaScript with no build step, and you're welcome to read it — [`lib/decide.js`](plugins/vibeguard/lib/decide.js) holds every rule, in order.
 
 ---
 
 ## For developers
 
-- [**How the classifier works**](plugins/vibeguard/README.md) — why it stays quiet on auto-run, how the rules are structured, and how to add your own
-- [**Editor extension**](extension/README.md) — the popup, the panel, and the interactive approve/deny protocol
+- [**How it works**](plugins/vibeguard/README.md) — the decision engine, why it stays quiet on auto-run, and how to add a rule
+- [**What is actually enforceable**](plugins/vibeguard/COVERAGE.md) — the honest per-tool matrix, including what VibeGuard *cannot* do and where published scanners have been bypassed
+- [**Editor extension**](extension/README.md) — the popup, the panel, and the approve/deny protocol
 
 ```sh
 git clone https://github.com/rockfort-ai/vibeguard.git
-cd vibeguard
-node plugins/vibeguard/test/run.js
+cd vibeguard/plugins/vibeguard
+node bin/vg.js test        # decision rules, skill signals, editor bridge
 ```
 
-Adding a rule is one regex and one plain-English sentence in [`plugins/vibeguard/lib/classify.js`](plugins/vibeguard/lib/classify.js). Both the Claude Code prompt and the editor popup render from the same rule, so you only write it once.
+Adding a rule is one regex and one plain-English sentence in [`lib/decide.js`](plugins/vibeguard/lib/decide.js). The Claude Code prompt and the editor popup render from the same rule, so you write it once.
 
 Contributions welcome — especially new rules. The bar for the wording is: **would this make sense to someone who has never opened a terminal?**
+
+<details>
+<summary><b>Turning on strict mode</b> — for teams and the security-minded</summary>
+
+By default VibeGuard is quiet: it blocks the always-bad list and explains the rest. If you want it to also question every network destination it doesn't recognise, and to hard-block skills that changed rather than asking:
+
+```sh
+mkdir -p ~/.vibeguard
+cp plugins/vibeguard/policy/strict.json ~/.vibeguard/policy.json
+```
+
+This is the profile intended for managed deployments, where an administrator pushes the policy and developers can't widen it. The same policy file compiles into Cursor, Codex, and a plain HTTP proxy:
+
+```sh
+node bin/vg.js sync --target all
+```
+
+Details and the honest limits are in [COVERAGE.md](plugins/vibeguard/COVERAGE.md).
+</details>
 
 ---
 

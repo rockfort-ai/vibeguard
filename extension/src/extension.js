@@ -76,16 +76,26 @@ async function askModal(ev) {
   const meta = LEVELS[ev.level] || LEVELS.green;
   const detail = [ev.msg, ev.action, '', ev.target].filter((x) => x !== undefined).join('\n');
 
+  // The third button appears only when the hook says this answer is safe to
+  // remember. It is absent for anything red and for skill drift — "always allow
+  // admin access" is not a preference, and a standing yes to a changed skill
+  // defeats the only reason skill pinning exists.
+  const always = ev.allowAlways
+    ? `Always allow ${ev.allowAlwaysLabel || 'this'}`
+    : null;
+
+  const buttons = always ? ['Approve', always, 'Deny'] : ['Approve', 'Deny'];
+
   const choice = await vscode.window.showWarningMessage(
     `${meta.dot} ${meta.label} — Claude wants to use ${ev.tool}`,
     { modal: true, detail },
-    'Approve',
-    'Deny'
+    ...buttons
   );
 
   // Escape or Cancel deliberately writes nothing: the hook times out and falls
   // back to the normal Claude Code prompt, so no answer is never a silent yes.
   if (choice === 'Approve') bridge.decide(ev.id, 'allow');
+  else if (always && choice === always) bridge.decide(ev.id, 'always');
   else if (choice === 'Deny') bridge.decide(ev.id, 'deny');
 }
 

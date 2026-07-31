@@ -1,0 +1,14 @@
+{
+  "_profile": "strict — full egress control. Copy to ~/.vibeguard/policy.json (or a project's .vibeguard/policy.json) to switch on.",
+  "_note": "This layers on top of the bundled policy, so every class and denylist below is inherited. It only changes the four defaults that decide how much VibeGuard speaks up.",
+
+  "version": 1,
+
+  "defaults": {
+    "unknownDestination": "ask",
+    "insecureHttp": "ask",
+    "rawIpDestination": "ask",
+    "skillDrift": "deny",
+    "redAction": "deny"
+  }
+}

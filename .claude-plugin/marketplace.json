@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "vibeguard",
-  "description": "VibeGuard by Rockfort AI — plain-English safety ratings for Claude Code permission prompts",
+  "description": "VibeGuard by Rockfort AI — permission cards, egress control, and skill pinning for Claude Code",
   "owner": {
     "name": "Rockfort AI",
     "url": "https://rockfort.ai"
@@ -10,7 +10,7 @@
     {
       "name": "vibeguard",
       "displayName": "VibeGuard",
-      "description": "Know what Claude Code is about to do, before you approve it. Adds a plain-English explanation and a green / orange / red safety rating to every permission prompt, so you never have to guess what a command means.",
+      "description": "Know what Claude Code is about to do, before you approve it. Plain-English red / orange / green cards on every permission prompt, network egress policy you can enforce instead of guessing, and content pinning for installed skills so a skill that changes after you approved it cannot quietly run.",
       "author": {
         "name": "Rockfort AI",
         "url": "https://rockfort.ai"
