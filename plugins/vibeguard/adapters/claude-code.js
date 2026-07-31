@@ -101,7 +101,17 @@ async function run(input) {
 
   if (v.decision === 'deny') return surface(v, input, tool, ti, ext);
 
-  if (v.decision === 'allow') return null;
+  // A green verdict still deserves a card *if Claude Code was going to ask
+  // anyway*. `mkdir test` is harmless, but it does raise a prompt — and a bare
+  // prompt with no explanation is the exact problem VibeGuard exists to solve.
+  // Returning null here made those prompts silent, which was a regression from
+  // v1.0.0. The two guards below are what stop this from inventing a prompt
+  // that would not otherwise have existed.
+  if (v.decision === 'allow') {
+    if (wouldAutoRun(input, tool, ti)) return null;
+    if (!wouldPrompt(tool, ti)) return null;
+    return surface(v, input, tool, ti, ext);
+  }
 
   // Already answered once with "always allow". Nothing red or skill-related can
   // reach this — keyFor refuses to produce a key for those.
@@ -177,7 +187,12 @@ async function surface(v, input, tool, ti, ext) {
     // No answer in time: fall through to a normal prompt.
   }
 
-  return out(v.decision, card(v));
+  // If we are showing a card at all, the user decides — never us. A green
+  // verdict returned as `allow` would auto-approve the call and remove the
+  // prompt it was meant to annotate, which is the opposite of the job and
+  // breaks the promise that VibeGuard cannot approve anything on your behalf.
+  // Only an explicit answer from the editor, handled above, produces `allow`.
+  return out(v.decision === 'allow' ? 'ask' : v.decision, card(v));
 }
 
 function out(permissionDecision, permissionDecisionReason) {
@@ -189,6 +204,48 @@ function out(permissionDecision, permissionDecisionReason) {
 function targetOf(tool, ti) {
   if (tool === 'Bash') return String(ti.command || '');
   return String(ti.file_path || ti.url || ti.path || ti.notebook_path || '');
+}
+
+// --- would Claude Code prompt for this on its own? --------------------------
+//
+// Only speak up for tools the docs say always need approval. Anything else
+// stays silent rather than guessing, because inventing a prompt turns a silent
+// auto-run into a nag — worse than saying nothing.
+//
+// Sources: /docs/en/permissions (file modification always prompts; Bash prompts
+// except a built-in read-only set) and /docs/en/security (network tools require
+// approval).
+
+const PROMPTING_TOOLS = new Set([
+  'Bash', 'PowerShell',
+  'Edit', 'Write', 'MultiEdit', 'NotebookEdit',
+  'WebFetch', 'WebSearch',
+]);
+
+const READ_ONLY_CMDS = new Set([
+  'ls', 'cat', 'echo', 'pwd', 'head', 'tail', 'grep', 'find',
+  'wc', 'which', 'diff', 'stat', 'du', 'cd',
+]);
+const READ_ONLY_GIT = new Set([
+  'status', 'log', 'diff', 'show', 'branch', 'remote', 'blame', 'describe',
+]);
+
+function isReadOnlyBash(cmd) {
+  if (!cmd.trim()) return false;
+  if (/>|>>/.test(cmd)) return false; // a redirect writes somewhere
+  return cmd.split(/&&|\|\||;|\|/).every((part) => {
+    const words = part.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return false;
+    const [name, sub] = words;
+    if (name === 'git') return READ_ONLY_GIT.has(sub);
+    return READ_ONLY_CMDS.has(name);
+  });
+}
+
+function wouldPrompt(tool, ti) {
+  if (!PROMPTING_TOOLS.has(tool)) return false;
+  if (tool === 'Bash' && isReadOnlyBash(String(ti.command || ''))) return false;
+  return true;
 }
 
 // --- would Claude have run this without asking? ----------------------------
