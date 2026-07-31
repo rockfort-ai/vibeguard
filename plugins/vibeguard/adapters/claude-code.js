@@ -29,7 +29,6 @@ const remember = require('../lib/remember');
 // emitted here or the extension's panel goes silently dead — it has no other
 // source of events.
 const INTERACTIVE = process.env.VIBEGUARD_INTERACTIVE === '1';
-const NOTIFY = process.env.VIBEGUARD_NOTIFY !== '0';
 const DECISION_TIMEOUT_MS = Number(process.env.VIBEGUARD_TIMEOUT_MS || 12000);
 
 // Tools that never prompt, and never touch the network.
@@ -117,11 +116,21 @@ async function run(input) {
   // reach this — keyFor refuses to produce a key for those.
   if (remember.has(remember.keyFor(v, ext))) return null;
 
-  // decision === 'ask'. Red always breaks through, and so does anything the
-  // egress engine flagged — an allowlisted `Bash(*)` rule must not silently
-  // waive a call to an unknown domain. Routine local warnings stay polite and
-  // defer to whatever the user already allowlisted.
-  const mustSurface = v.level === 'red' || v.rule.startsWith('egress.');
+  // decision === 'ask'. The job is to explain prompts the user was already
+  // going to see, not to manufacture new ones — a tool that adds friction to
+  // work you already approved gets uninstalled, and then it protects nobody.
+  //
+  // Exactly one thing breaks through an allowlist by default: red. That set is
+  // tiny and irreversible — sudo, force-push, erasing a disk, dropping a table
+  // — and "I allowlisted Bash" should not silently include them. This is v1.0.0
+  // behaviour and is documented in the README.
+  //
+  // Egress asks defer to the allowlist under the friendly profile: if you told
+  // Claude Code that curl is fine, VibeGuard does not second-guess it for
+  // api.stripe.com. Strict mode flips this, because a managed fleet does want
+  // the network policy to win over a developer's local convenience.
+  const egressWins = policy.defaults.egressOverridesAllowlist === true;
+  const mustSurface = v.level === 'red' || (egressWins && v.rule.startsWith('egress.'));
   if (!mustSurface && wouldAutoRun(input, tool, ti)) return null;
 
   // We are about to put a real question in front of a human. Leave a marker so
@@ -168,11 +177,6 @@ async function surface(v, input, tool, ti, ext) {
     allowAlways: interactive && !!rememberKey,
     allowAlwaysLabel: rememberKey ? remember.describe(rememberKey) : '',
   });
-
-  // The editor popup replaces the OS banner when an editor is listening.
-  if (v.level === 'red' && NOTIFY && !live) {
-    notifyMac(v.decision === 'deny' ? 'VibeGuard blocked a request' : 'VibeGuard: HIGH RISK', v.msg);
-  }
 
   if (interactive && id) {
     const d = await bridge.waitForDecision(id, DECISION_TIMEOUT_MS);
@@ -316,18 +320,13 @@ function skillGuard(tool, ti) {
   ]);
 }
 
-// macOS only, and deliberately not polyfilled. The banner is a secondary
-// channel — the deny card in the permission dialog is the primary one and works
-// on every platform. A Windows toast needs either a PowerShell WinRT
-// incantation that varies by build or a third-party module, and an alert that
-// fires unreliably is worse than one that is documented as absent.
-function notifyMac(title, msg) {
-  if (process.platform !== 'darwin') return;
-  try {
-    const { spawn } = require('child_process');
-    const script = `display notification ${JSON.stringify(String(msg).slice(0, 200))} with title ${JSON.stringify(title)} sound name "Basso"`;
-    spawn('osascript', ['-e', script], { detached: true, stdio: 'ignore' }).unref();
-  } catch {
-    /* notifications are best effort */
-  }
-}
+// The macOS notification banner was removed deliberately.
+//
+// Claude Code already raises its own OS notification when it needs permission,
+// so a second banner from VibeGuard was pure duplication — two alerts for one
+// decision, on a dialog the user is already looking at. The card inside the
+// prompt is the signal; a banner on top of it is noise, and noise is what makes
+// people stop reading the cards.
+//
+// It was also the only platform-specific behaviour in the runtime, so removing
+// it makes macOS, Linux and Windows behave identically.

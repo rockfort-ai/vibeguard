@@ -91,7 +91,7 @@ From now on, every time Claude Code asks permission for something, you'll see a 
 
 Claude Code, and Node.js — which you already have if you installed Claude Code with npm. Nothing else to install; VibeGuard has zero dependencies.
 
-macOS, Linux and Windows are all supported. On Windows everything works except the desktop notification banner for high-risk items — the coloured card in the prompt itself is identical everywhere, and that's the part that matters.
+macOS, Linux and Windows all behave identically — there is no platform-specific behaviour left in it.
 </details>
 
 <details>
@@ -112,9 +112,9 @@ macOS, Linux and Windows are all supported. On Windows everything works except t
 | 🟠 | **Check this first.** Real, but usually fine — read the command before you approve. | Deleting files, installing packages, publishing code, sending data to a website |
 | 🔴 | **High risk.** Stop and read. If you didn't ask for this, deny it. | Administrator access, running scripts straight off the internet, erasing a disk, touching your passwords or keys |
 
-Red items always ask, even if you've told Claude Code to stop asking about that kind of command — and they also raise a desktop notification, so you'll catch them when you're looking somewhere else.
+Red items always ask, even if you've told Claude Code to stop asking about that kind of command. That list is short and hard to undo — administrator access, force-pushing over your history, erasing a disk — and "I allowlisted terminal commands" shouldn't quietly include them.
 
-Everything Claude Code would run silently on its own stays silent. VibeGuard adds explanations to prompts you were already going to see, and creates new ones only for the handful of things listed below.
+**Everything else defers to you.** If you've already told Claude Code something is fine, VibeGuard doesn't second-guess it. It explains the prompts you were going to see anyway, and adds no new ones. There is no desktop notification: Claude Code already raises one when it needs an answer, and a second banner for the same decision is just noise.
 
 ---
 

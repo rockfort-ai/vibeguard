@@ -9,6 +9,7 @@
     "insecureHttp": "ask",
     "rawIpDestination": "ask",
     "skillDrift": "deny",
+    "egressOverridesAllowlist": true,
     "redAction": "deny"
   }
 }

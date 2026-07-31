@@ -1,7 +1,7 @@
 {
   "name": "vibeguard",
   "version": "1.1.0",
-  "builtAt": "2026-07-31T13:37:54.244Z",
+  "builtAt": "2026-07-31T13:46:02.020Z",
   "builtBy": "vg package",
   "files": [
     {
@@ -18,7 +18,7 @@
     },
     {
       "file": "adapters/claude-code.js",
-      "sha256": "b63e5ad633242486"
+      "sha256": "d1cdf2f23b2899bb"
     },
     {
       "file": "adapters/cursor.js",
@@ -78,7 +78,7 @@
     },
     {
       "file": "policy/strict.json",
-      "sha256": "d90e897c8e7f36cd"
+      "sha256": "5cd63d6605150e65"
     },
     {
       "file": "README.md",
