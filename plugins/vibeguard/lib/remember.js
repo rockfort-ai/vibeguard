@@ -28,6 +28,29 @@ const FILE = path.join(os.homedir(), '.vibeguard', 'remembered.json');
 // command — remembering `npm install lodash` would not silence
 // `npm install react`, so the prompt would come straight back and the button
 // would feel broken.
+// Rules that may only ever be silenced by an explicit click, never inferred
+// from behaviour. Destructive, irreversible, or security-relevant: one yes to
+// `rm` must not mean yes to every future delete, and "publishes your code" is
+// not something to infer from a single push.
+//
+// Auto-learning is therefore for the genuinely noisy and low-stakes — package
+// installs, stopping a process. Everything here still gets the Always-allow
+// button in the editor, where the user is looking at the specific command.
+const NEVER_AUTO_LEARN = new Set([
+  'local.rm', 'local.git-push', 'local.git-discard', 'local.docker-rm',
+  'local.perms', 'local.persistence', 'local.read-secrets',
+  'local.edit-shell-profile', 'local.edit-agent-config',
+]);
+
+function autoLearnable(verdict) {
+  if (!verdict || !verdict.rule) return false;
+  if (NEVER_AUTO_LEARN.has(verdict.rule)) return false;
+  // Network answers are per-destination and sensitive by construction —
+  // payments, cloud control planes. Those get an explicit click too.
+  if (verdict.rule.startsWith('egress.')) return false;
+  return true;
+}
+
 function keyFor(verdict, ext) {
   if (!verdict || verdict.level === 'red') return null;
   if (verdict.rule.startsWith('skill.')) return null;
@@ -104,6 +127,56 @@ function list() {
   return Object.entries(store.allow).map(([key, v]) => ({ key, ...v }));
 }
 
+// --- proof that a human was actually asked -----------------------------------
+//
+// PostToolUse fires whenever a tool succeeds — including tools that ran with no
+// prompt at all, under acceptEdits, an allowlist entry, or bypassPermissions.
+// Treating "it ran" as "they approved it" was wrong, and it silenced real
+// guardrails: a background cleanup script running `rm -rf /tmp/x` taught
+// VibeGuard that deleting files is always fine, without a human ever seeing a
+// card.
+//
+// So PreToolUse leaves a marker only when it actually surfaced a question, and
+// PostToolUse will only learn if it finds one. Auto-run leaves no marker and
+// therefore teaches nothing.
+
+const PENDING = path.join(os.homedir(), '.vibeguard', 'pending.json');
+const PENDING_TTL_MS = 10 * 60 * 1000;
+
+function notePending(key, session) {
+  if (!key) return false;
+  try {
+    const now = Date.now();
+    let store = {};
+    try { store = JSON.parse(fs.readFileSync(PENDING, 'utf8')) || {}; } catch { /* first */ }
+    for (const [k, ts] of Object.entries(store)) {
+      if (now - ts > PENDING_TTL_MS) delete store[k];
+    }
+    store[`${session || ''}|${key}`] = now;
+    fs.mkdirSync(path.dirname(PENDING), { recursive: true });
+    fs.writeFileSync(PENDING, JSON.stringify(store));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Consumes the marker: a single question authorises a single lesson.
+function takePending(key, session) {
+  if (!key) return false;
+  try {
+    const store = JSON.parse(fs.readFileSync(PENDING, 'utf8')) || {};
+    const id = `${session || ''}|${key}`;
+    const ts = store[id];
+    if (!ts || Date.now() - ts > PENDING_TTL_MS) return false;
+    delete store[id];
+    fs.writeFileSync(PENDING, JSON.stringify(store));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // --- MCP inventory -----------------------------------------------------------
 //
 // VibeGuard cannot see inside an MCP call — it gets a tool name and an opaque
@@ -146,5 +219,6 @@ function mcpServers() {
 
 module.exports = {
   keyFor, describe, has, add, forget, list, load, FILE,
+  autoLearnable, notePending, takePending, NEVER_AUTO_LEARN,
   noteMcp, mcpServers,
 };

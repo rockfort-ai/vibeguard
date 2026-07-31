@@ -114,6 +114,14 @@ async function run(input) {
   const mustSurface = v.level === 'red' || v.rule.startsWith('egress.');
   if (!mustSurface && wouldAutoRun(input, tool, ti)) return null;
 
+  // We are about to put a real question in front of a human. Leave a marker so
+  // PostToolUse can tell an approval apart from a tool that simply ran — an
+  // auto-approved call reaches PostToolUse identically, and treating that as
+  // consent silently disabled the guardrails.
+  if (remember.autoLearnable(v)) {
+    remember.notePending(remember.keyFor(v, ext), input.session_id);
+  }
+
   return surface(v, input, tool, ti, ext);
 }
 

@@ -64,8 +64,18 @@ function run(input) {
   // `allow` had nothing to learn; `deny` never reached here.
   if (v.decision !== 'ask') return;
 
+  // Destructive and security-relevant rules are never inferred from behaviour,
+  // only from an explicit click. One yes to `rm` is not yes to every delete.
+  if (!remember.autoLearnable(v)) return;
+
   const key = remember.keyFor(v, ext);
   if (!key) return;
+
+  // The decisive check. A tool reaching PostToolUse proves it ran, not that a
+  // human agreed — acceptEdits, an allowlist entry, or bypassPermissions all
+  // get here with nobody having seen a card. Only a marker left by PreToolUse
+  // when it actually asked authorises a lesson, and it is consumed on use.
+  if (!remember.takePending(key, input.session_id)) return;
 
   remember.add(key, { rule: v.rule, tool, learned: 'approved-once' });
 }
