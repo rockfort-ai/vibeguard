@@ -1,12 +1,16 @@
 {
   "name": "vibeguard",
   "version": "1.1.0",
-  "builtAt": "2026-07-31T12:46:34.541Z",
+  "builtAt": "2026-07-31T13:16:56.936Z",
   "builtBy": "vg package",
   "files": [
     {
       "file": ".claude-plugin/plugin.json",
       "sha256": "22d7b11d61de8323"
+    },
+    {
+      "file": "adapters/claude-code-post.js",
+      "sha256": "69d5e0b8d77af290"
     },
     {
       "file": "adapters/claude-code-session.js",
@@ -22,7 +26,7 @@
     },
     {
       "file": "bin/vg.js",
-      "sha256": "d2c4c93844a4e7c5"
+      "sha256": "ba9d4001a635d53b"
     },
     {
       "file": "commands/vibeguard-skills.md",
@@ -34,7 +38,7 @@
     },
     {
       "file": "hooks/hooks.json",
-      "sha256": "e55288d0056fba51"
+      "sha256": "a35e1c9e4de9443f"
     },
     {
       "file": "lib/audit.js",
@@ -50,7 +54,7 @@
     },
     {
       "file": "lib/extract.js",
-      "sha256": "b841acb3dee511ce"
+      "sha256": "fe70824c74c5e8c3"
     },
     {
       "file": "lib/policy.js",
@@ -58,7 +62,7 @@
     },
     {
       "file": "lib/remember.js",
-      "sha256": "c9198c93df6a11ae"
+      "sha256": "47add1d95886aa91"
     },
     {
       "file": "lib/render.js",
@@ -70,7 +74,7 @@
     },
     {
       "file": "policy/policy.json",
-      "sha256": "04dd59c251ec60c2"
+      "sha256": "c797b5108981c8c2"
     },
     {
       "file": "policy/strict.json",
@@ -82,7 +86,7 @@
     },
     {
       "file": "test/bridge.test.js",
-      "sha256": "864cb3aff19fa980"
+      "sha256": "c6f2be3fcef1e089"
     },
     {
       "file": "test/demo.sh",

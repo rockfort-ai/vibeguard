@@ -208,12 +208,31 @@ function gitRemoteHost(cwd) {
 function secretReads(text, policy) {
   const hits = [];
   const ind = (policy && policy.secretIndicators) || {};
+  // Path indicators name *files*, so they need boundaries. Without them `.env`
+  // matches inside `process.env`, and `*.key` inside `foo.keychain` — so a
+  // one-liner that reads an environment variable, plus any package install,
+  // was hard-blocked as credential exfiltration. That is the worst class of
+  // false positive: a deny the user cannot override, on a command that is
+  // completely ordinary.
+  //
+  // A real filename is preceded by a separator (space, quote, `/`, `@`, start
+  // of string) and not glued to a word character on either side. `.env.local`
+  // and `id_rsa.pub` still match, because `.` is not a word character.
   for (const p of ind.paths || []) {
-    const re = new RegExp(globToRe(p), 'i');
+    const re = new RegExp('(?<![A-Za-z0-9_])' + globToRe(p) + '(?![A-Za-z0-9_])', 'i');
     if (re.test(text)) hits.push({ kind: 'file', match: p });
   }
+  // Command indicators are commands, not property names. `\benv\b` matches
+  // inside `process.env` because `.` is a word boundary — so any script reading
+  // an environment variable looked like it was dumping the whole environment.
+  //
+  // The distinction that matters is what precedes the dot: `process.env` has a
+  // word character before it (property access), while the file `.env` has
+  // whitespace or the start of the string. Only the former is excluded.
   for (const c of ind.commands || []) {
-    if (new RegExp('\\b' + escapeRe(c) + '\\b', 'i').test(text)) hits.push({ kind: 'command', match: c });
+    if (new RegExp('(?<![A-Za-z0-9_]\\.)\\b' + escapeRe(c) + '\\b', 'i').test(text)) {
+      hits.push({ kind: 'command', match: c });
+    }
   }
   for (const p of ind.patterns || []) {
     if (new RegExp('\\b' + escapeRe(p) + '\\b').test(text)) hits.push({ kind: 'env', match: p });

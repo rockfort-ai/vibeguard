@@ -21,6 +21,7 @@ const { decide, card } = require('../lib/decide');
 const render = require('../lib/render');
 const audit = require('../lib/audit');
 const skills = require('../lib/skills');
+const remember = require('../lib/remember');
 // `lib/package.js` is build tooling and is deliberately NOT shipped in the
 // plugin payload, so it is required lazily inside pkg(). Requiring it at module
 // load made the *shipped* vg crash on every command — including the `vg skills`
@@ -381,6 +382,42 @@ function pkg() {
   console.log('by the new engine. Read `git diff` before committing.');
 }
 
+// --- vg allowed / vg mcp -----------------------------------------------------
+
+function allowed() {
+  if (flags.forget !== undefined) {
+    const key = flags.forget === true ? null : flags.forget;
+    remember.forget(key);
+    return console.log(key ? `forgot ${key}` : 'forgot every remembered answer');
+  }
+  const rows = remember.list();
+  if (!rows.length) return console.log('nothing remembered yet. Approve something once and it stops asking.');
+  console.log('VibeGuard will no longer ask about:\n');
+  for (const r of rows) {
+    const how = r.learned ? 'approved once' : 'always-allow button';
+    console.log(`  ${(r.what || r.key).padEnd(44)} ${String(r.at).slice(0, 10)}  (${how})`);
+  }
+  console.log(`\nforget one:  vg allowed --forget "${rows[0].key}"`);
+  console.log('forget all:  vg allowed --forget');
+}
+
+function mcp() {
+  const servers = remember.mcpServers();
+  if (!servers.length) {
+    return console.log('no MCP tools observed yet. VibeGuard records them as they are used.');
+  }
+  console.log('MCP servers actually in use:\n');
+  for (const s of servers) {
+    console.log(`  ${s.server.padEnd(24)} ${String(s.calls).padStart(5)} calls   last ${String(s.lastSeen).slice(0, 10)}`);
+    for (const [t, n] of s.tools.slice(0, flags.all ? 99 : 5)) {
+      console.log(`      ${String(n).padStart(5)}×  ${t}`);
+    }
+    if (!flags.all && s.tools.length > 5) console.log(`      … ${s.tools.length - 5} more (--all)`);
+  }
+  console.log('\nVibeGuard does not judge MCP calls — it cannot see inside them.');
+  console.log('This is an inventory of what your agent is actually reaching for.');
+}
+
 // --- vg coverage -----------------------------------------------------------
 
 function coverage() {
@@ -417,6 +454,15 @@ const CASES = [
   ['allow', 'curl https://some-blog.example.com/post'],
   ['allow', 'curl http://neverssl.com/page'],
   ['allow', 'curl https://10.0.0.7:8080/health'],
+
+  // Secret indicators name files and commands, not substrings. `.env` used to
+  // match inside `process.env` and `env` inside `process.env.HOME`, so an
+  // ordinary Node one-liner plus any package install was hard-denied as
+  // credential exfiltration — a block the user could not override, on a
+  // completely normal command. Found by it blocking VibeGuard's own tooling.
+  ['allow', 'node -e "console.log(process.env.HOME)" && npm ci'],
+  ['allow', 'echo $NODE_ENV && curl https://registry.npmjs.org/react'],
+  ['allow', 'ls foo.keychain'],
 ];
 
 // Under the strict profile the same three become questions. Everything that is
@@ -506,10 +552,12 @@ function help() {
   vg skills pin <id> | --all        accept a skill's current bytes
   vg skills pin <id> --accept-risk  …and accept the signals it currently trips
   vg package [--out DIR]            build the marketplace repo (tests must pass)
+  vg allowed [--forget KEY]         what VibeGuard has stopped asking about
+  vg mcp [--all]                    MCP servers your agent actually uses
   vg coverage                       what is enforced where, honestly
   vg test                           run the built-in policy test suite
 `);
 }
 
-const COMMANDS = { check, sync, allow, learn, skills: skillsCmd, package: pkg, coverage, test, help };
+const COMMANDS = { check, sync, allow, learn, skills: skillsCmd, allowed, mcp, package: pkg, coverage, test, help };
 (COMMANDS[cmd] || help)();

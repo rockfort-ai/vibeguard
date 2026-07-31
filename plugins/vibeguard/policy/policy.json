@@ -10,7 +10,8 @@
     "insecureHttp": "allow",
     "rawIpDestination": "allow",
     "loopbackDestination": "allow",
-    "skillDrift": "ask"
+    "skillDrift": "ask",
+    "learnFromApprovals": true
   },
 
   "classes": {

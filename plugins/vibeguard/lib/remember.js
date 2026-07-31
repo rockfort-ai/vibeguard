@@ -104,4 +104,47 @@ function list() {
   return Object.entries(store.allow).map(([key, v]) => ({ key, ...v }));
 }
 
-module.exports = { keyFor, describe, has, add, forget, list, load, FILE };
+// --- MCP inventory -----------------------------------------------------------
+//
+// VibeGuard cannot see inside an MCP call — it gets a tool name and an opaque
+// argument object, with no way to tell a screenshot from a file upload. So it
+// does not judge them, and it does not pretend to: it records which servers and
+// tools are actually being used, so "which MCPs am I running?" has an answer
+// grounded in observation rather than in a config file nobody has read.
+
+function noteMcp(tool, cwd) {
+  const m = /^mcp__([^_]+(?:_[^_]+)*?)__(.+)$/.exec(tool);
+  if (!m) return false;
+  const [, server, name] = m;
+  try {
+    const store = load();
+    store.mcp = store.mcp || {};
+    const s = store.mcp[server] || { firstSeen: new Date().toISOString(), tools: {}, projects: [] };
+    s.tools[name] = (s.tools[name] || 0) + 1;
+    s.lastSeen = new Date().toISOString();
+    if (cwd && !s.projects.includes(cwd) && s.projects.length < 20) s.projects.push(cwd);
+    store.mcp[server] = s;
+    fs.mkdirSync(path.dirname(FILE), { recursive: true });
+    fs.writeFileSync(FILE, JSON.stringify(store, null, 2) + '\n');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function mcpServers() {
+  const store = load();
+  return Object.entries(store.mcp || {}).map(([server, v]) => ({
+    server,
+    calls: Object.values(v.tools || {}).reduce((a, b) => a + b, 0),
+    tools: Object.entries(v.tools || {}).sort((a, b) => b[1] - a[1]),
+    firstSeen: v.firstSeen,
+    lastSeen: v.lastSeen,
+    projects: v.projects || [],
+  })).sort((a, b) => b.calls - a.calls);
+}
+
+module.exports = {
+  keyFor, describe, has, add, forget, list, load, FILE,
+  noteMcp, mcpServers,
+};

@@ -190,6 +190,42 @@ async function run() {
     check(host === 'host:api.stripe.com', 'remembers egress answers per destination', String(host));
   }
 
+  // 8. Learn from an approval. A hook-driven `ask` gets a reduced dialog with
+  //    no "don't ask again", so noticing that a tool actually ran is the only
+  //    way a repeated question can ever stop.
+  {
+    const home = sandbox();
+    const POST = path.join(__dirname, '..', 'adapters', 'claude-code-post.js');
+    const post = (input) => new Promise((res) => {
+      const p = spawn(process.execPath, [POST], { env: { ...process.env, HOME: home, USERPROFILE: home } });
+      p.on('close', res);
+      p.stdin.end(JSON.stringify({ ...input, cwd: home }));
+    });
+
+    const before = await runHook(home, ASK_CALL);
+    check(!!before && before.hookSpecificOutput.permissionDecision === 'ask', 'asks the first time');
+
+    await post(ASK_CALL);
+    const after = await runHook(home, {
+      tool_name: 'Bash', tool_input: { command: 'npm install react' },
+    });
+    check(after === null, 'stops asking after it was approved once', JSON.stringify(after));
+
+    // The asymmetry that makes this safe: a red rule is never learned, even
+    // though the command did run.
+    await post({ tool_name: 'Bash', tool_input: { command: 'sudo launchctl load x.plist' } });
+    const red = await runHook(home, { tool_name: 'Bash', tool_input: { command: 'sudo launchctl load y.plist' } });
+    check(!!red && red.hookSpecificOutput.permissionDecision === 'ask',
+      'never learns a red rule', red && red.hookSpecificOutput.permissionDecision);
+
+    // MCP calls are inventoried, not judged.
+    await post({ tool_name: 'mcp__Claude_Browser__computer', tool_input: { action: 'screenshot' } });
+    const store = JSON.parse(fs.readFileSync(path.join(home, '.vibeguard', 'remembered.json'), 'utf8'));
+    check(!!(store.mcp && store.mcp.Claude_Browser), 'records MCP servers as they are used');
+    check(!store.allow['rule:ok'], 'does not invent allow rules for MCP calls');
+    fs.rmSync(home, { recursive: true, force: true });
+  }
+
   console.log(`\n${total - fail}/${total} passed`);
   return fail;
 }
