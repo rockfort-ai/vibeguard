@@ -134,10 +134,34 @@ Layers may narrow the list — `{"safeCommands": {"remove": ["cat"]}}` or
 `~/.rlegend/policy.json` may add to it: a `.rlegend/policy.json` committed
 to a repo must not be able to hand that repo new auto-approvals.
 
+## Auto-accept modes
+
+`bypassPermissions`, `dontAsk` and `auto` are the user saying *stop asking me*.
+Rockfort Legend takes that literally: in those modes it raises nothing, not even
+red. Interrupting anyway would be inventing a prompt, which is the one thing it
+will not do.
+
+What it does instead is write everything down — what ran, what the verdict was,
+and that nobody was asked — and report it afterwards. A `Stop` hook says so at
+the end of the turn when something elevated ran unseen, and `/rlegend-session`
+shows the full picture on demand.
+
+Two things a quiet mode does **not** switch off:
+
+- **Hard denies still block.** Credentials leaving the machine, `curl | bash`,
+  a known exfil sink. Blocking is not the same as asking.
+- **An allowlist is not a permission mode.** `Bash(sudo *)` is a claim about a
+  command, so the tiny irreversible set — sudo, `rm -rf ~`, force-push, erasing
+  a disk, dropping a table, `chmod 777` — still asks. `acceptEdits` sits on this
+  side of the line too: it says edits are fine, not that nothing should be
+  raised, so an edit to Claude's own config still asks.
+
 ## Unattended runs
 
 An `ask` verdict is meaningless when nobody is watching. Set `RLEGEND_STRICT=1`
-in cloud agents and background composers — every `ask` becomes a `deny`.
+in cloud agents and background composers — every `ask` becomes a `deny`. That is
+the setting for a machine nobody will ever read a recap from, and it is the
+opposite trade to the one above: block rather than record.
 
 ## Layout
 

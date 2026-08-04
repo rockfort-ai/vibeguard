@@ -1,7 +1,7 @@
 {
   "name": "rlegend",
   "version": "1.2.0",
-  "builtAt": "2026-08-04T11:25:13.771Z",
+  "builtAt": "2026-08-04T11:46:12.462Z",
   "builtBy": "rlegend package",
   "files": [
     {
@@ -14,7 +14,7 @@
     },
     {
       "file": "adapters/claude-code-session.js",
-      "sha256": "dc3129e8913247da"
+      "sha256": "9437220c143535f7"
     },
     {
       "file": "adapters/claude-code-stop.js",
@@ -22,7 +22,7 @@
     },
     {
       "file": "adapters/claude-code.js",
-      "sha256": "95e376fc6ee68fd3"
+      "sha256": "9200087d5068bbf8"
     },
     {
       "file": "adapters/cursor.js",
@@ -86,7 +86,7 @@
     },
     {
       "file": "lib/session.js",
-      "sha256": "15b8b4e870f205ec"
+      "sha256": "ac9302b7bb4f34e9"
     },
     {
       "file": "lib/skills.js",
@@ -102,11 +102,11 @@
     },
     {
       "file": "README.md",
-      "sha256": "7df5111839e042fd"
+      "sha256": "2213dccfabf0de69"
     },
     {
       "file": "test/adapter.test.js",
-      "sha256": "c9a26b8b85559ba5"
+      "sha256": "1a8d3a8821726e84"
     },
     {
       "file": "test/bridge.test.js",

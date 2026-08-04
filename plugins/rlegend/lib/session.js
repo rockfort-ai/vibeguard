@@ -126,7 +126,53 @@ function describeRow(r) {
   return `${what} — ${r.rule}`;
 }
 
+// --- what a previous session never got to say ---------------------------------
+//
+// The Stop hook reports at the end of a turn. It does not fire if the session is
+// killed, the process crashes, or the machine sleeps and never comes back — and
+// in a quiet mode the whole point is that nothing was shown at the time either.
+// So the finding would be lost silently, which for the one thing this tool
+// exists to notice is the worst possible failure.
+//
+// SessionStart therefore picks up anything a previous session left unreported.
+// Driven from the audit log rather than from the marker files, because a
+// session that died before Stop ever ran has no marker to find.
+const RECAP_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const RECAP_MAX_SESSIONS = 5;
+
+function pendingRecaps(policy, currentSessionId) {
+  let rows;
+  try {
+    rows = require('./audit').readSession(policy, '', '');
+  } catch {
+    return [];
+  }
+  const bySession = new Map();
+  for (const r of rows) {
+    if (!r.session || r.session === currentSessionId) continue;
+    if (!bySession.has(r.session)) bySession.set(r.session, []);
+    bySession.get(r.session).push(r);
+  }
+
+  const cutoff = Date.now() - RECAP_MAX_AGE_MS;
+  const out = [];
+  for (const [id, list] of bySession) {
+    const since = read(id).lastRecapTs || '';
+    const fresh = list.filter((r) => (!since || r.ts > since) && Date.parse(r.ts) > cutoff);
+    const unseen = elevatedUnseen(fresh);
+    if (unseen.length) out.push({ session: id, rows: unseen, newest: fresh[fresh.length - 1].ts });
+  }
+  // Newest first, and bounded: a week of dead sessions must not become a wall.
+  return out.sort((a, b) => (a.newest < b.newest ? 1 : -1)).slice(0, RECAP_MAX_SESSIONS);
+}
+
+// Called once the report has been handed over, so it is said exactly once.
+function markAllRecapped(pending) {
+  for (const p of pending) markRecapped(p.session, p.newest);
+}
+
 module.exports = {
-  read, write, noteSkill, markRecapped, elevatedUnseen, describeRow,
+  read, write, noteSkill, markRecapped, markAllRecapped,
+  elevatedUnseen, describeRow, pendingRecaps,
   ATTRIBUTION_CAVEAT, DIR,
 };

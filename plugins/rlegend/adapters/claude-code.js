@@ -89,6 +89,13 @@ async function run(input) {
       decision, level: 'red', rule: 'skill.unpinned',
       msg: guard.msg, action: guard.action, destinations: [],
     };
+    // A deny blocks in every mode. An ask is a question, and a fully quiet mode
+    // is the user having said not to ask — so it goes to the recap instead.
+    if (decision === 'ask' && fullyQuiet(input)) {
+      return finish(policy, v, {
+        ...ctx, surfaced: false, quiet: `mode:${mode}`, skill: guard.id,
+      });
+    }
     return finish(policy, v, { ...ctx, surfaced: true, skill: guard.id });
   }
 
@@ -165,9 +172,22 @@ async function run(input) {
   // Claude Code that curl is fine, Rockfort Legend does not second-guess it for
   // api.stripe.com. Strict mode flips this, because a managed fleet does want
   // the network policy to win over a developer's local convenience.
+  //
+  // An allowlist entry and a permission mode are not the same statement, and
+  // v1.2.0 stopped treating them as one. `Bash(npm install *)` says "this
+  // command is fine" — it is a claim about a command, and red is not covered by
+  // it. `bypassPermissions` says "stop asking me": it is a claim about the
+  // session, made deliberately, and honouring it is the whole reason someone
+  // turns it on. Interrupting anyway is inventing a prompt, which is the one
+  // thing this must not do.
+  //
+  // So in a fully quiet mode nothing asks. It is recorded instead, and the Stop
+  // recap reports it afterwards. Hard denies are unaffected: a deny blocks, and
+  // blocking is not the same as asking.
   const egressWins = policy.defaults.egressOverridesAllowlist === true;
-  const mustSurface = v.level === 'red' || (egressWins && v.rule.startsWith('egress.'));
   const quiet = wouldAutoRun(input, tool, ti, v.level);
+  const mustSurface = !fullyQuiet(input)
+    && (v.level === 'red' || (egressWins && v.rule.startsWith('egress.')));
   if (!mustSurface && quiet) return finish(policy, v, { ...ctx, surfaced: false, quiet });
 
   // We are about to put a real question in front of a human. Leave a marker so
@@ -223,6 +243,13 @@ function invokedSkill(policy, input, ti, ctx) {
       action: `Review it, then accept with: rlegend skills pin ${r.id} --accept-risk`,
     };
 
+  // Same rule as everywhere else: a deny blocks in any mode, an ask defers to
+  // the recap when the user has said not to ask.
+  if (v.decision === 'ask' && fullyQuiet(input)) {
+    return finish(policy, v, {
+      ...ctx, surfaced: false, quiet: `mode:${ctx.mode}`, skill: r.id,
+    });
+  }
   return finish(policy, v, { ...ctx, surfaced: true, skill: r.id });
 }
 
@@ -378,6 +405,14 @@ function wouldPrompt(tool, ti) {
 // log say "this was silenced by bypassPermissions" rather than just omitting
 // the row. v1.0.0 recorded this; v1.1.0 dropped it and the recap became
 // impossible to build.
+
+// "Stop asking me for the rest of this session." Deliberately narrower than
+// wouldAutoRun: acceptEdits is not in here, because it says only that edits are
+// fine — closer to an allowlist entry than to a blanket instruction — and an
+// edit to Claude's own config should still raise a card.
+function fullyQuiet(input) {
+  return QUIET_MODES.has(input.permission_mode || input.permissionMode || '');
+}
 
 function wouldAutoRun(input, tool, ti, level) {
   const mode = input.permission_mode || input.permissionMode || '';

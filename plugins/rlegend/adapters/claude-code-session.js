@@ -24,6 +24,7 @@
 const { load } = require('../lib/policy');
 const skills = require('../lib/skills');
 const audit = require('../lib/audit');
+const session = require('../lib/session');
 
 let raw = '';
 process.stdin.on('data', (d) => (raw += d));
@@ -41,8 +42,17 @@ process.stdin.on('end', () => {
 function run(input) {
   const cwd = input.cwd || process.cwd();
   const policy = load(cwd);
+
+  // Computed before the skill audit, and reported even if that finds nothing.
+  // This is about actions that already ran; whether the machine happens to have
+  // any skills on disk has no bearing on it. Putting it after the early return
+  // below meant a machine with no skills never heard about them at all.
+  const pending = session.pendingRecaps(policy, input.session_id || '');
+  const catchUp = pending.length ? unattendedBlock(pending) : '';
+  if (pending.length) session.markAllRecapped(pending);
+
   const { rows, removed, lock } = skills.audit(cwd, policy);
-  if (!rows.length) return null;
+  if (!rows.length) return catchUp ? context(catchUp.trimEnd()) : null;
 
   const firstRun = Object.keys(lock.pinned).length === 0;
   if (firstRun) skills.writeLock(skills.pin(rows, lock));
@@ -86,14 +96,34 @@ function run(input) {
     // The note belongs here too, not only in the noisy report. "N skills, no
     // drift" reads as a complete audit, and it is not one — the count omits
     // whatever the app provides without putting a SKILL.md on disk.
-    return context(`Rockfort Legend: ${rows.length} skills on disk, all matching their pinned hashes. No drift. `
+    return context(catchUp
+      + `Rockfort Legend: ${rows.length} skills on disk, all matching their pinned hashes. No drift. `
       + skills.NOT_INVENTORIED_NOTE);
   }
 
-  return context(report({
+  return context(catchUp + report({
     rows, changed, added, risky, removed, firstRun,
     strict: policy.defaults.skillDrift === 'deny',
   }));
+}
+
+// Put first, above the skill audit. It is the more urgent of the two: a skill
+// signal is something to look at, this is something that already happened.
+function unattendedBlock(pending) {
+  const total = pending.reduce((n, p) => n + p.rows.length, 0);
+  const L = [];
+  L.push(`RAN WITHOUT A PROMPT IN A PREVIOUS SESSION — ${total} elevated action${total === 1 ? '' : 's'}.`);
+  L.push('An auto-accept mode was on, so nothing was raised at the time. That was');
+  L.push('deliberate. This is the report that was owed afterwards.');
+  for (const p of pending) {
+    L.push(`  session ${String(p.session).slice(0, 8)}:`);
+    for (const r of p.rows.slice(0, 6)) L.push(`    • ${session.describeRow(r)}  (${String(r.ts).slice(0, 16).replace('T', ' ')})`);
+    if (p.rows.length > 6) L.push(`    … and ${p.rows.length - 6} more`);
+  }
+  L.push('Rockfort Legend did not approve these; it was not asked. Report them to the');
+  L.push('user plainly. `rlegend session --session <id>` has the full list.');
+  L.push('');
+  return L.join('\n') + '\n';
 }
 
 function report({ rows, changed, added, risky, removed, firstRun, strict }) {
