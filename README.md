@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-<h1 align="center">VibeGuard</h1>
+<h1 align="center">Rockfort Legend</h1>
 
 <p align="center">
   <b>Know what Claude Code is about to do — before you approve it.</b>
@@ -20,7 +20,7 @@
   &nbsp;·&nbsp;
   <a href="#it-also-watches-the-skills-you-install">Skills</a>
   &nbsp;·&nbsp;
-  <a href="plugins/vibeguard/README.md">How it works</a>
+  <a href="plugins/rlegend/README.md">How it works</a>
 </p>
 
 ---
@@ -35,7 +35,7 @@ Bash(rm -rf ./src)
 
 If you're not a developer, that isn't a question you can answer. So most people click **Approve** and hope for the best.
 
-## What VibeGuard does
+## What Rockfort Legend does
 
 It adds one line of plain English, and a colour, to every prompt:
 
@@ -67,7 +67,7 @@ You don't need a terminal, and you don't need to know what any of this does.
 ### Step 1 — Copy this line
 
 ```
-/plugin marketplace add rockfort-ai/vibeguard
+/plugin marketplace add rockfort-ai/rlegend
 ```
 
 Paste it into Claude Code, press **Enter**.
@@ -75,7 +75,7 @@ Paste it into Claude Code, press **Enter**.
 ### Step 2 — Copy this line
 
 ```
-/plugin install vibeguard@vibeguard
+/plugin install rlegend@rlegend
 ```
 
 Paste it in, press **Enter**. Claude Code will ask you to confirm — say yes.
@@ -89,7 +89,7 @@ From now on, every time Claude Code asks permission for something, you'll see a 
 <details>
 <summary><b>Requirements</b></summary>
 
-Claude Code, and Node.js — which you already have if you installed Claude Code with npm. Nothing else to install; VibeGuard has zero dependencies.
+Claude Code, and Node.js — which you already have if you installed Claude Code with npm. Nothing else to install; Rockfort Legend has zero dependencies.
 
 macOS, Linux and Windows all behave identically — there is no platform-specific behaviour left in it.
 </details>
@@ -98,7 +98,7 @@ macOS, Linux and Windows all behave identically — there is no platform-specifi
 <summary><b>Uninstalling</b></summary>
 
 ```
-/plugin uninstall vibeguard@vibeguard
+/plugin uninstall rlegend@rlegend
 ```
 </details>
 
@@ -114,13 +114,13 @@ macOS, Linux and Windows all behave identically — there is no platform-specifi
 
 Red items always ask, even if you've told Claude Code to stop asking about that kind of command. That list is short and hard to undo — administrator access, force-pushing over your history, erasing a disk — and "I allowlisted terminal commands" shouldn't quietly include them.
 
-**Everything else defers to you.** If you've already told Claude Code something is fine, VibeGuard doesn't second-guess it. It explains the prompts you were going to see anyway, and adds no new ones. There is no desktop notification: Claude Code already raises one when it needs an answer, and a second banner for the same decision is just noise.
+**Everything else defers to you.** If you've already told Claude Code something is fine, Rockfort Legend doesn't second-guess it. It explains the prompts you were going to see anyway, and adds no new ones. There is no desktop notification: Claude Code already raises one when it needs an answer, and a second banner for the same decision is just noise.
 
 ---
 
 ## The things it stops without asking
 
-There is a short list where "are you sure?" is the wrong question, because the answer is always no. VibeGuard blocks these outright:
+There is a short list where "are you sure?" is the wrong question, because the answer is always no. Rockfort Legend blocks these outright:
 
 | | |
 |---|---|
@@ -136,13 +136,13 @@ This list is deliberately tiny. Everything else it explains and lets you decide.
 
 Claude Code can install **skills** — small bundles of instructions written by other people. They're useful, and they're also unreviewed code running with your agent's permissions.
 
-VibeGuard takes a fingerprint of every skill on your machine the first time it sees it. If one of them **changes later**, you get told, and you're asked before anything from it runs.
+Rockfort Legend takes a fingerprint of every skill on your machine the first time it sees it. If one of them **changes later**, you get told, and you're asked before anything from it runs.
 
 That matters because of a specific trick: publish something helpful, wait for people to install it, then quietly change it. Nothing re-checks a skill after you've said yes to it once. This does.
 
-Run **`/vibeguard-skills`** in Claude Code any time to see what's installed and whether anything has changed.
+Run **`/rlegend-skills`** in Claude Code any time to see what's installed and whether anything has changed.
 
-> VibeGuard reports what it finds. It never tells you a skill is "safe" — nobody can honestly promise that, and the scanners that do have been [publicly bypassed](plugins/vibeguard/COVERAGE.md).
+> Rockfort Legend reports what it finds. It never tells you a skill is "safe" — nobody can honestly promise that, and the scanners that do have been [publicly bypassed](plugins/rlegend/COVERAGE.md).
 
 ---
 
@@ -156,7 +156,7 @@ You can also turn on **Approve / Deny buttons** and answer the prompt from the p
 
 ---
 
-## What VibeGuard doesn't do
+## What Rockfort Legend doesn't do
 
 Worth being explicit, since it's a security tool:
 
@@ -166,43 +166,43 @@ Worth being explicit, since it's a security tool:
 - It **can't make Claude Code less safe.** It only ever adds explanation, asks about something that would otherwise have been silent, or blocks something outright. It cannot approve anything on your behalf.
 - It **doesn't judge your skills for you.** It reports what it sees and tells you when something changed. It never claims a skill is safe.
 
-It's plain JavaScript with no build step, and you're welcome to read it — [`lib/decide.js`](plugins/vibeguard/lib/decide.js) holds every rule, in order.
+It's plain JavaScript with no build step, and you're welcome to read it — [`lib/decide.js`](plugins/rlegend/lib/decide.js) holds every rule, in order.
 
 ---
 
 ## For developers
 
-- [**How it works**](plugins/vibeguard/README.md) — the decision engine, why it stays quiet on auto-run, and how to add a rule
-- [**What is actually enforceable**](plugins/vibeguard/COVERAGE.md) — the honest per-tool matrix, including what VibeGuard *cannot* do and where published scanners have been bypassed
+- [**How it works**](plugins/rlegend/README.md) — the decision engine, why it stays quiet on auto-run, and how to add a rule
+- [**What is actually enforceable**](plugins/rlegend/COVERAGE.md) — the honest per-tool matrix, including what Rockfort Legend *cannot* do and where published scanners have been bypassed
 - [**Editor extension**](extension/README.md) — the popup, the panel, and the approve/deny protocol
 
 ```sh
-git clone https://github.com/rockfort-ai/vibeguard.git
-cd vibeguard/plugins/vibeguard
-node bin/vg.js test        # decision rules, skill signals, editor bridge
+git clone https://github.com/rockfort-ai/rlegend.git
+cd rlegend/plugins/rlegend
+node bin/rlegend.js test        # decision rules, skill signals, editor bridge
 ```
 
-Adding a rule is one regex and one plain-English sentence in [`lib/decide.js`](plugins/vibeguard/lib/decide.js). The Claude Code prompt and the editor popup render from the same rule, so you write it once.
+Adding a rule is one regex and one plain-English sentence in [`lib/decide.js`](plugins/rlegend/lib/decide.js). The Claude Code prompt and the editor popup render from the same rule, so you write it once.
 
 Contributions welcome — especially new rules. The bar for the wording is: **would this make sense to someone who has never opened a terminal?**
 
 <details>
 <summary><b>Turning on strict mode</b> — for teams and the security-minded</summary>
 
-By default VibeGuard is quiet: it blocks the always-bad list and explains the rest. If you want it to also question every network destination it doesn't recognise, and to hard-block skills that changed rather than asking:
+By default Rockfort Legend is quiet: it blocks the always-bad list and explains the rest. If you want it to also question every network destination it doesn't recognise, and to hard-block skills that changed rather than asking:
 
 ```sh
-mkdir -p ~/.vibeguard
-cp plugins/vibeguard/policy/strict.json ~/.vibeguard/policy.json
+mkdir -p ~/.rlegend
+cp plugins/rlegend/policy/strict.json ~/.rlegend/policy.json
 ```
 
 This is the profile intended for managed deployments, where an administrator pushes the policy and developers can't widen it. The same policy file compiles into Cursor, Codex, and a plain HTTP proxy:
 
 ```sh
-node bin/vg.js sync --target all
+node bin/rlegend.js sync --target all
 ```
 
-Details and the honest limits are in [COVERAGE.md](plugins/vibeguard/COVERAGE.md).
+Details and the honest limits are in [COVERAGE.md](plugins/rlegend/COVERAGE.md).
 </details>
 
 ---
@@ -211,7 +211,7 @@ Details and the honest limits are in [COVERAGE.md](plugins/vibeguard/COVERAGE.md
 
 [Rockfort AI](https://rockfort.ai) builds security tooling for a world where AI writes the code.
 
-VibeGuard is our smallest product and our most opinionated one. AI coding assistants gave millions of people the ability to build software without learning what `sudo` means — and then kept asking them to approve `sudo`. This closes that gap.
+Rockfort Legend is our smallest product and our most opinionated one. AI coding assistants gave millions of people the ability to build software without learning what `sudo` means — and then kept asking them to approve `sudo`. This closes that gap.
 
 ---
 

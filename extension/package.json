@@ -1,6 +1,6 @@
 {
-  "name": "vibeguard",
-  "displayName": "VibeGuard",
+  "name": "rlegend",
+  "displayName": "Rockfort Legend",
   "description": "Know what Claude Code is about to do, before you approve it. Plain-English safety ratings in a real popup. By Rockfort AI.",
   "version": "1.0.0",
   "publisher": "rockfort-ai",
@@ -14,9 +14,9 @@
     "name": "Rockfort AI",
     "url": "https://rockfort.ai"
   },
-  "homepage": "https://github.com/rockfort-ai/vibeguard",
+  "homepage": "https://github.com/rockfort-ai/rlegend",
   "bugs": {
-    "url": "https://github.com/rockfort-ai/vibeguard/issues"
+    "url": "https://github.com/rockfort-ai/rlegend/issues"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -28,22 +28,22 @@
   "contributes": {
     "commands": [
       {
-        "command": "vibeguard.showPanel",
-        "title": "VibeGuard: Show recent activity"
+        "command": "rlegend.showPanel",
+        "title": "Rockfort Legend: Show recent activity"
       },
       {
-        "command": "vibeguard.clearHistory",
-        "title": "VibeGuard: Clear history"
+        "command": "rlegend.clearHistory",
+        "title": "Rockfort Legend: Clear history"
       },
       {
-        "command": "vibeguard.status",
-        "title": "VibeGuard: Check connection to Claude Code"
+        "command": "rlegend.status",
+        "title": "Rockfort Legend: Check connection to Claude Code"
       }
     ],
     "configuration": {
-      "title": "VibeGuard",
+      "title": "Rockfort Legend",
       "properties": {
-        "vibeguard.popupOn": {
+        "rlegend.popupOn": {
           "type": "string",
           "enum": ["red", "orangeAndRed", "all", "off"],
           "enumDescriptions": [
@@ -55,23 +55,23 @@
           "default": "orangeAndRed",
           "description": "Which risk levels raise a popup."
         },
-        "vibeguard.revealPanelOn": {
+        "rlegend.revealPanelOn": {
           "type": "string",
           "enum": ["red", "orangeAndRed", "all", "never"],
           "default": "red",
-          "description": "Which risk levels automatically open the VibeGuard panel."
+          "description": "Which risk levels automatically open the Rockfort Legend panel."
         },
-        "vibeguard.statusBar": {
+        "rlegend.statusBar": {
           "type": "boolean",
           "default": true,
-          "description": "Show the VibeGuard indicator in the status bar."
+          "description": "Show the Rockfort Legend indicator in the status bar."
         }
       }
     }
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rockfort-ai/vibeguard.git"
+    "url": "https://github.com/rockfort-ai/rlegend.git"
   },
   "scripts": {
     "package": "npx --yes @vscode/vsce package --no-dependencies"

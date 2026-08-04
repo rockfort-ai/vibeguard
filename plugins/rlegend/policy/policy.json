@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "name": "rlegend-default",
+  "description": "Single source of truth for coding-agent network egress. Compiled down to each harness's native config by `rlegend sync`, and enforced at runtime by the hook adapters.",
+
+  "_profile": "friendly — the shipped default. Blocks what is always bad, stays silent about everything else. See policy/strict.json to turn on full egress control.",
+
+  "defaults": {
+    "unknownDestination": "allow",
+    "insecureHttp": "allow",
+    "rawIpDestination": "allow",
+    "loopbackDestination": "allow",
+    "skillDrift": "ask",
+    "learnFromApprovals": true
+  },
+
+  "_safeCommands": "The one place Rockfort Legend answers a prompt for you. Everything here is a positive match on a specific command, never 'nothing matched' — a verdict of green means no rule fired, which includes everything Rockfort Legend could not parse, and auto-approving that is the direction that fails open. It is checked only after Claude Code was already going to ask, so it can remove a prompt and can never enable something that was not going to run. `bin` must be the exact first word; `sub` the exact second; any shell composition, any destination, any credential reference, and it does not apply.",
+
+  "safeCommands": {
+    "enabled": true,
+    "entries": [
+      { "id": "git-status", "bin": "git", "sub": ["status"] },
+      { "id": "git-diff", "bin": "git", "sub": ["diff"] },
+      { "id": "git-log", "bin": "git", "sub": ["log"] },
+      { "id": "git-show", "bin": "git", "sub": ["show"] },
+      { "id": "git-branch", "bin": "git", "sub": ["branch"] },
+      { "id": "ls", "bin": "ls" },
+      { "id": "pwd", "bin": "pwd" },
+      { "id": "wc", "bin": "wc" },
+      { "id": "which", "bin": "which" },
+      { "id": "file", "bin": "file" },
+      { "id": "cat", "bin": "cat" },
+      { "id": "npm-test", "bin": "npm", "sub": ["test"] },
+      { "id": "npm-run", "bin": "npm", "sub": ["run"], "arg": ["test", "lint", "typecheck", "build"] },
+      { "id": "tsc-noemit", "bin": "tsc", "flagsOnly": ["--noEmit", "-p", "--project"] },
+      { "id": "pytest", "bin": "pytest" },
+      { "id": "go-test", "bin": "go", "sub": ["test"] },
+      { "id": "cargo-test", "bin": "cargo", "sub": ["test"] }
+    ]
+  },
+
+  "classes": {
+    "package-registries": [
+      "registry.npmjs.org", "*.npmjs.org", "registry.yarnpkg.com",
+      "pypi.org", "files.pythonhosted.org", "*.pypi.org",
+      "crates.io", "static.crates.io", "index.crates.io",
+      "proxy.golang.org", "sum.golang.org",
+      "rubygems.org", "*.rubygems.org",
+      "repo.maven.apache.org", "repo1.maven.org",
+      "packagist.org", "repo.packagist.org",
+      "nuget.org", "api.nuget.org",
+      "formulae.brew.sh", "*.homebrew.org", "ghcr.io",
+      "registry-1.docker.io", "auth.docker.io", "production.cloudflare.docker.com"
+    ],
+    "vcs": [
+      "github.com", "*.github.com", "codeload.github.com",
+      "objects.githubusercontent.com", "raw.githubusercontent.com",
+      "gitlab.com", "*.gitlab.com",
+      "bitbucket.org", "*.bitbucket.org",
+      "dev.azure.com", "*.visualstudio.com"
+    ],
+    "ai-providers": [
+      "api.anthropic.com", "*.anthropic.com",
+      "api.openai.com", "*.openai.com",
+      "generativelanguage.googleapis.com",
+      "api.cursor.sh", "*.cursor.sh", "api.devin.ai", "*.devinapps.com"
+    ],
+    "docs": [
+      "developer.mozilla.org", "docs.python.org", "pkg.go.dev",
+      "stackoverflow.com", "*.stackexchange.com",
+      "code.claude.com", "docs.anthropic.com", "developers.openai.com",
+      "cursor.com", "docs.devin.ai"
+    ],
+    "cloud-control-planes": [
+      "*.amazonaws.com", "sts.amazonaws.com",
+      "*.googleapis.com", "*.azure.com", "management.azure.com",
+      "api.cloudflare.com", "api.vercel.com", "api.netlify.com",
+      "api.render.com", "api.fly.io"
+    ],
+    "exfil-sinks": [
+      "webhook.site", "*.webhook.site",
+      "requestbin.com", "*.requestbin.com", "pipedream.net", "*.m.pipedream.net",
+      "pastebin.com", "*.pastebin.com", "hastebin.com", "dpaste.com",
+      "0x0.st", "transfer.sh", "file.io", "gofile.io", "anonfiles.com",
+      "termbin.com", "ix.io", "sprunge.us", "clbin.com",
+      "discord.com/api/webhooks", "discordapp.com/api/webhooks",
+      "api.telegram.org", "hooks.slack.com",
+      "*.oastify.com", "*.burpcollaborator.net", "*.interact.sh", "*.oast.fun",
+      "*.ngrok.io", "*.ngrok-free.app", "*.trycloudflare.com",
+      "*.serveo.net", "*.localtunnel.me", "*.loca.lt"
+    ],
+    "anonymizers": [
+      "*.onion", "*.i2p", "*.tor2web.org"
+    ],
+    "crypto": [
+      "*.infura.io", "*.alchemy.com", "api.etherscan.io", "*.binance.com"
+    ],
+    "payments": [
+      "api.stripe.com", "*.stripe.com", "api.paypal.com", "*.paypal.com",
+      "api.squareup.com", "api.adyen.com", "*.braintreegateway.com"
+    ]
+  },
+
+  "allow": [
+    "class:package-registries",
+    "class:vcs",
+    "class:ai-providers",
+    "class:docs",
+    "localhost",
+    "127.0.0.1",
+    "::1"
+  ],
+
+  "ask": [
+    "class:cloud-control-planes",
+    "class:crypto",
+    "class:payments"
+  ],
+
+  "deny": [
+    "class:exfil-sinks",
+    "class:anonymizers",
+    "169.254.169.254"
+  ],
+
+  "secretIndicators": {
+    "paths": [
+      ".env", ".env.*", "*.pem", "*.key", "id_rsa", "id_ed25519",
+      ".ssh/*", ".aws/credentials", ".aws/config", ".npmrc", ".pypirc",
+      ".pgpass", ".netrc", ".docker/config.json", "kubeconfig",
+      "*.p12", "*.keystore", "serviceAccount*.json", "credentials.json"
+    ],
+    "commands": [
+      "env", "printenv", "security find-generic-password",
+      "aws sts get-session-token", "gcloud auth print-access-token",
+      "kubectl get secret", "op read", "vault read"
+    ],
+    "patterns": [
+      "AWS_SECRET_ACCESS_KEY", "AWS_ACCESS_KEY_ID", "OPENAI_API_KEY",
+      "ANTHROPIC_API_KEY", "GITHUB_TOKEN", "GH_TOKEN", "STRIPE_SECRET",
+      "DATABASE_URL", "PRIVATE_KEY", "SLACK_TOKEN", "NPM_TOKEN"
+    ]
+  },
+
+  "telemetry": {
+    "logPath": "~/.claude/rlegend/egress.jsonl",
+    "logAllowed": true
+  }
+}

@@ -1,6 +1,6 @@
 'use strict';
 
-// The VibeGuard panel: a running list of everything Claude has asked to do,
+// The Rockfort Legend panel: a running list of everything Claude has asked to do,
 // colour-coded, newest first. This is where the full card lives — the terminal
 // permission dialog strips line breaks, so the two-line form (what it does /
 // what to do) can only be shown here.
@@ -24,8 +24,8 @@ class Panel {
       return Panel.current;
     }
     const panel = vscode.window.createWebviewPanel(
-      'vibeguard.panel',
-      'VibeGuard',
+      'rlegend.panel',
+      'Rockfort Legend',
       { viewColumn: column, preserveFocus: true },
       { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [extensionUri] }
     );
@@ -158,7 +158,7 @@ function html(webview) {
 <body>
 <h1>Recent activity</h1>
 <div id="list"></div>
-<footer>VibeGuard &middot; Rockfort AI</footer>
+<footer>Rockfort Legend &middot; Rockfort AI</footer>
 <script nonce="${nonce}">
   const vscode = acquireVsCodeApi();
   const list = document.getElementById('list');

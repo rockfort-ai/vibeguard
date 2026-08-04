@@ -1,6 +1,6 @@
 'use strict';
 
-// VibeGuard for VS Code and Cursor.
+// Rockfort Legend for VS Code and Cursor.
 //
 // The Claude Code hook does the thinking; this shows the result properly. The
 // terminal permission dialog is one line with no formatting, which is exactly
@@ -29,20 +29,20 @@ function activate(ctx) {
   ctx.subscriptions.push({ dispose: () => bridge.stop() });
 
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  status.command = 'vibeguard.showPanel';
+  status.command = 'rlegend.showPanel';
   ctx.subscriptions.push(status);
   refreshStatus();
 
   ctx.subscriptions.push(
-    vscode.commands.registerCommand('vibeguard.showPanel', () => showPanel(true)),
-    vscode.commands.registerCommand('vibeguard.clearHistory', () => {
+    vscode.commands.registerCommand('rlegend.showPanel', () => showPanel(true)),
+    vscode.commands.registerCommand('rlegend.clearHistory', () => {
       history = [];
       refreshStatus();
       if (Panel.current) Panel.current.render(history);
     }),
-    vscode.commands.registerCommand('vibeguard.status', showDiagnostics),
+    vscode.commands.registerCommand('rlegend.status', showDiagnostics),
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('vibeguard')) refreshStatus();
+      if (e.affectsConfiguration('rlegend')) refreshStatus();
     })
   );
 }
@@ -124,7 +124,7 @@ function showPanel(reveal) {
 
 function onDecide(id, decision) {
   if (!bridge.decide(id, decision)) {
-    vscode.window.showErrorMessage('VibeGuard could not send that answer to Claude Code.');
+    vscode.window.showErrorMessage('Rockfort Legend could not send that answer to Claude Code.');
   }
 }
 
@@ -135,10 +135,10 @@ function refreshStatus() {
   }
   const last = history[0];
   const meta = last ? LEVELS[last.level] : null;
-  status.text = meta ? `${meta.dot} VibeGuard` : '$(shield) VibeGuard';
+  status.text = meta ? `${meta.dot} Rockfort Legend` : '$(shield) Rockfort Legend';
   status.tooltip = last
-    ? `${meta.label} — ${last.msg}\n\nClick to open the VibeGuard panel.`
-    : 'VibeGuard is watching Claude Code permission prompts.';
+    ? `${meta.label} — ${last.msg}\n\nClick to open the Rockfort Legend panel.`
+    : 'Rockfort Legend is watching Claude Code permission prompts.';
   status.show();
 }
 
@@ -149,7 +149,7 @@ function atLeast(level, setting) {
 }
 
 function cfg(key, fallback) {
-  return vscode.workspace.getConfiguration('vibeguard').get(key, fallback);
+  return vscode.workspace.getConfiguration('rlegend').get(key, fallback);
 }
 
 async function showDiagnostics() {
@@ -166,12 +166,12 @@ async function showDiagnostics() {
     `Events this session: ${history.length}`,
     '',
     seenSomething
-      ? 'Approve/Deny buttons appear only when the hook runs with VIBEGUARD_INTERACTIVE=1.'
-      : 'Install the VibeGuard plugin in Claude Code, then run a command that needs permission.',
+      ? 'Approve/Deny buttons appear only when the hook runs with RLEGEND_INTERACTIVE=1.'
+      : 'Install the Rockfort Legend plugin in Claude Code, then run a command that needs permission.',
   ];
 
   const choice = await vscode.window.showInformationMessage(
-    'VibeGuard',
+    'Rockfort Legend',
     { modal: true, detail: lines.join('\n') },
     'Open panel'
   );

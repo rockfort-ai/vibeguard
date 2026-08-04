@@ -1,0 +1,22 @@
+{
+  "name": "rlegend",
+  "displayName": "Rockfort Legend",
+  "version": "1.2.0",
+  "description": "Know what Claude Code is about to do, before you approve it. Plain-English red / orange / green cards on every permission prompt, network egress policy you can enforce instead of guessing, and content pinning for installed skills so a skill that changes after you approved it cannot quietly run.",
+  "author": {
+    "name": "Rockfort AI",
+    "url": "https://rockfort.ai"
+  },
+  "homepage": "https://github.com/rockfort-ai/rlegend",
+  "repository": "https://github.com/rockfort-ai/rlegend",
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "permissions",
+    "hooks",
+    "safety",
+    "egress",
+    "skills",
+    "supply-chain"
+  ]
+}

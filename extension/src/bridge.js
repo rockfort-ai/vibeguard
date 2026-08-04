@@ -1,15 +1,15 @@
 'use strict';
 
-// The editor half of the channel described in plugins/vibeguard/lib/bridge.js.
+// The editor half of the channel described in plugins/rlegend/lib/bridge.js.
 //
-// Tails ~/.vibeguard/events.jsonl and writes decisions back. Kept free of any
+// Tails ~/.rlegend/events.jsonl and writes decisions back. Kept free of any
 // vscode imports so it can be exercised without an editor running.
 
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const HOME = path.join(os.homedir(), '.vibeguard');
+const HOME = path.join(os.homedir(), '.rlegend');
 const EVENTS = path.join(HOME, 'events.jsonl');
 const DECISIONS = path.join(HOME, 'decisions');
 const HEARTBEAT = path.join(HOME, 'extension.alive');
