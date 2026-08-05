@@ -155,7 +155,7 @@ async function run(input) {
     const safe = safelist.match(tool, ti, ext, v, policy);
     if (safe) return finish(policy, v, { ...ctx, approve: true, quiet: `safe-list:${safe.id}` });
 
-    if (!wouldPrompt(tool, ti)) return finish(policy, v, { ...ctx, surfaced: false, quiet: 'green:no-prompt' });
+    if (!wouldPrompt(tool)) return finish(policy, v, { ...ctx, surfaced: false, quiet: 'green:no-prompt' });
 
     return finish(policy, v, { ...ctx, surfaced: true });
   }
@@ -380,30 +380,19 @@ const PROMPTING_TOOLS = new Set([
   'WebFetch', 'WebSearch',
 ]);
 
-const READ_ONLY_CMDS = new Set([
-  'ls', 'cat', 'echo', 'pwd', 'head', 'tail', 'grep', 'find',
-  'wc', 'which', 'diff', 'stat', 'du', 'cd',
-]);
-const READ_ONLY_GIT = new Set([
-  'status', 'log', 'diff', 'show', 'branch', 'remote', 'blame', 'describe',
-]);
-
-function isReadOnlyBash(cmd) {
-  if (!cmd.trim()) return false;
-  if (/>|>>/.test(cmd)) return false; // a redirect writes somewhere
-  return cmd.split(/&&|\|\||;|\|/).every((part) => {
-    const words = part.trim().split(/\s+/).filter(Boolean);
-    if (!words.length) return false;
-    const [name, sub] = words;
-    if (name === 'git') return READ_ONLY_GIT.has(sub);
-    return READ_ONLY_CMDS.has(name);
-  });
-}
-
-function wouldPrompt(tool, ti) {
-  if (!PROMPTING_TOOLS.has(tool)) return false;
-  if (tool === 'Bash' && isReadOnlyBash(String(ti.command || ''))) return false;
-  return true;
+// There used to be a read-only shortcut here — a list of commands (`ls`, `cat`,
+// `git status`) assumed to run without a prompt, so no card was shown for them.
+// It was wrong, and wrong in the direction that matters: Claude Code prompts for
+// those, and the user got a bare permission dialog with nothing on it. A tool
+// that goes blank on the first prompt of a demo looks broken, and "looks broken"
+// and "is absent" are the same thing to whoever is watching.
+//
+// Guessing was the mistake. Boring commands are now *answered* by the safe-list
+// — which removes the prompt outright rather than annotating it — and anything
+// the safe-list declines gets a card. Nothing is left to a guess about someone
+// else's internals.
+function wouldPrompt(tool) {
+  return PROMPTING_TOOLS.has(tool);
 }
 
 // --- would Claude have run this without asking? ----------------------------

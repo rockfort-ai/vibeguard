@@ -27,6 +27,14 @@ const MAX_LEN = 300;
 // Anything that chains, redirects, substitutes or escapes. Deliberately not
 // "split on separators and check each part" — that is how `git status; rm -rf ~`
 // gets through a sloppy implementation. One command, no composition, or nothing.
+//
+// `\ ` is the one exception, and it is not a nicety: on macOS the directories
+// people actually work in are called "Claude Code" and "Application Support",
+// so a blanket backslash veto meant no path with a space in it could ever be
+// answered. Every other use of a backslash is still refused — the escaped
+// space is swapped out first, then this runs on what is left.
+const ESCAPED_SPACE = /\\ /g;
+const SPACE_HOLDER = '\u0000'; // cannot appear in a command line
 const COMPOSITION = /[;|&><`$(){}\\\n\r]/;
 
 // Flags that turn a reader into a writer or an evaluator, whatever the binary.
@@ -38,7 +46,7 @@ const FLAG = /^-{1,2}[A-Za-z][\w-]*$/;
 
 // A relative path inside the project. No absolute paths, no home, no traversal.
 function isRelPath(t) {
-  if (!/^[\w.@/+-]+$/.test(t)) return false;
+  if (!/^[\w.@/+ -]+$/.test(t)) return false;
   if (t.startsWith('/') || t.startsWith('~') || t.startsWith('-')) return false;
   return !t.split('/').includes('..');
 }
@@ -70,8 +78,10 @@ function match(tool, ti, ext, v, policy) {
   const cmd = String((ti && ti.command) || '');
   if (!cmd.trim() || cmd.length > MAX_LEN) return null;
 
-  // Veto 5: composition.
-  if (COMPOSITION.test(cmd)) return null;
+  // Veto 5: composition. Escaped spaces are folded into a placeholder first so
+  // "Claude\ Code" survives, then restored when the tokens are read back.
+  const held = cmd.replace(ESCAPED_SPACE, SPACE_HOLDER);
+  if (COMPOSITION.test(held)) return null;
 
   // Veto 6: credentials. Load-bearing rather than belt-and-braces — `cat .env`
   // is a green verdict, because readPath is only set for the Read tool and
@@ -79,7 +89,8 @@ function match(tool, ti, ext, v, policy) {
   // reading your credentials.
   if (secretReads(cmd, policy).length) return null;
 
-  const tokens = cmd.trim().split(/\s+/).filter(Boolean);
+  const tokens = held.trim().split(/\s+/).filter(Boolean)
+    .map((t) => t.split(SPACE_HOLDER).join(' '));
   if (tokens.some((t) => DANGEROUS.has(t.split('=')[0]))) return null;
 
   for (const e of cfg.entries) {

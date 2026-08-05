@@ -588,25 +588,43 @@ async function run() {
   }
 
   // 19. A tool that never prompts is silent but still logged, distinguishably.
+  // 20. Nothing green is ever left bare. This is the invariant that broke in a
+  //     live demo: a read-only shortcut assumed Claude Code would not prompt for
+  //     `ls`/`cat`, it does, and the user got a permission dialog with no card
+  //     on it. Either the safe-list answers it, or a card explains it. Never
+  //     silence while a prompt is on screen.
   {
     const home = sandbox();
-    // `head` is judged read-only but is not on the safe-list, so it takes the
-    // wouldPrompt path rather than being answered.
-    await runHook(home, BASH('head -5 package.json'));
-    check(last(home).quiet === 'green:no-prompt',
-      'a command Claude Code would not prompt for is logged as such', last(home).quiet);
+    const cases = [
+      ['ls -la', 'allow'],                                  // answered outright
+      ['cat package.json', 'allow'],
+      ['git status', 'allow'],
+      ['head -5 package.json', 'ask'],                       // not listed → carded
+      ['ls -la /tmp', 'ask'],                                // absolute → carded
+      ['ls -la ~/Desktop/Claude\\ Code/projects', 'ask'],    // escaped space + absolute
+      ['ls -la $(whoami)', 'ask'],                           // substitution → carded
+    ];
+    for (const [cmd, want] of cases) {
+      const r = await runHook(home, BASH(cmd));
+      const got = r ? r.hookSpecificOutput.permissionDecision : '(silent)';
+      check(got === want, `${cmd} → ${want}`, got);
+    }
 
-    // The gap that made this ordering matter: `ls` and `cat` are judged
-    // read-only too, but Claude Code does prompt for them — so leaving them to
-    // the wouldPrompt guess produced a bare prompt with no card on it.
-    await runHook(home, BASH('ls -la'));
-    check(last(home).quiet === 'safe-list:ls',
-      'and a read Claude Code does prompt for is answered, not left bare', last(home).quiet);
+    // An escaped space in a *relative* path is answered, because on macOS the
+    // directories people work in have spaces in their names.
+    const r2 = await runHook(home, BASH('cat ./My\\ Notes/readme.txt'));
+    check(!!r2 && r2.hookSpecificOutput.permissionDecision === 'allow',
+      'an escaped space in a relative path is still answered', JSON.stringify(r2));
 
-    // …but not when it reads a credential.
-    const r = await runHook(home, BASH('cat .env'));
-    check(!!r && r.hookSpecificOutput.permissionDecision === 'ask',
-      'reading a credentials file through a shell asks', JSON.stringify(r));
+    // …and the escape does not smuggle anything past the composition veto.
+    const r3 = await runHook(home, BASH('ls -la ./test ; rm -rf ~'));
+    check(!!r3 && r3.hookSpecificOutput.permissionDecision === 'ask' && last(home).level === 'red',
+      'and composition is still refused', JSON.stringify(r3));
+
+    // Reading a credentials file through a shell asks rather than passing.
+    const r4 = await runHook(home, BASH('cat .env'));
+    check(!!r4 && r4.hookSpecificOutput.permissionDecision === 'ask',
+      'reading a credentials file through a shell asks', JSON.stringify(r4));
     check(last(home).rule === 'local.read-secrets', 'with its own rule', last(home).rule);
     fs.rmSync(home, { recursive: true, force: true });
   }
