@@ -327,11 +327,14 @@ async function run() {
       else wrong.push(`${want}: ${command}`);
     }
     check(!wrong.length, 'nothing the engine flagged is ever auto-approved', wrong.join(' | '));
-    // And of the greens, only ones that positively match a named entry. `npm
-    // test` is on the list; `curl https://some-blog.example.com/post` is green
-    // too, and must not be.
-    const unexpected = approvedGreens.filter((c) => c !== 'npm test');
+    // And of the greens, only ones that positively match a named entry.
+    // `npm test` and the plain reads are on the list; every green that reaches
+    // the network is not, and must not be approved.
+    const ON_LIST = new Set(['npm test', 'ls -la && cat package.json', 'ls foo.keychain']);
+    const unexpected = approvedGreens.filter((c) => !ON_LIST.has(c));
     check(!unexpected.length, 'and green alone is not enough to be approved', unexpected.join(' | '));
+    check(!approvedGreens.some((c) => /curl|git clone/.test(c)),
+      'nothing that touches the network is auto-approved', approvedGreens.join(' | '));
     fs.rmSync(home, { recursive: true, force: true });
   }
 
@@ -587,9 +590,24 @@ async function run() {
   // 19. A tool that never prompts is silent but still logged, distinguishably.
   {
     const home = sandbox();
-    await runHook(home, BASH('git status'));
+    // `head` is judged read-only but is not on the safe-list, so it takes the
+    // wouldPrompt path rather than being answered.
+    await runHook(home, BASH('head -5 package.json'));
     check(last(home).quiet === 'green:no-prompt',
       'a command Claude Code would not prompt for is logged as such', last(home).quiet);
+
+    // The gap that made this ordering matter: `ls` and `cat` are judged
+    // read-only too, but Claude Code does prompt for them — so leaving them to
+    // the wouldPrompt guess produced a bare prompt with no card on it.
+    await runHook(home, BASH('ls -la'));
+    check(last(home).quiet === 'safe-list:ls',
+      'and a read Claude Code does prompt for is answered, not left bare', last(home).quiet);
+
+    // …but not when it reads a credential.
+    const r = await runHook(home, BASH('cat .env'));
+    check(!!r && r.hookSpecificOutput.permissionDecision === 'ask',
+      'reading a credentials file through a shell asks', JSON.stringify(r));
+    check(last(home).rule === 'local.read-secrets', 'with its own rule', last(home).rule);
     fs.rmSync(home, { recursive: true, force: true });
   }
 

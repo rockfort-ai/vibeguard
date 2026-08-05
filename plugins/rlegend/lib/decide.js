@@ -119,6 +119,17 @@ function decide(policy, call, ext) {
 
   // --- local action rules --------------------------------------------------
 
+  // The same thing through a shell. `readPath` is only ever set for the Read
+  // tool, so until v1.2.0 `cat .env` was a green verdict with nothing to say —
+  // the exact question a first-time user asks ("does it notice something
+  // reading my keys?") answered wrongly. There is no destination here, so this
+  // is not exfiltration and it is not a block; it is worth a question.
+  if (!ext.destinations.length && secrets.length && call.tool !== 'Read' && !ext.mcp) {
+    return verdict('ask', 'orange', 'local.read-secrets',
+      `Reads your ${describeSecret(secrets[0])}. Once read, the agent can repeat it anywhere — including into a reply.`,
+      'Approve only if the task genuinely needs those keys.', ext, secrets);
+  }
+
   if (ext.readPath) {
     const hits = secretReads(ext.readPath, policy);
     if (hits.length) {

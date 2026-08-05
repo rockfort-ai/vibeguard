@@ -140,14 +140,22 @@ async function run(input) {
   if (v.decision === 'allow') {
     const quiet = wouldAutoRun(input, tool, ti, v.level);
     if (quiet) return finish(policy, v, { ...ctx, surfaced: false, quiet });
-    if (!wouldPrompt(tool, ti)) return finish(policy, v, { ...ctx, surfaced: false, quiet: 'green:no-prompt' });
-
-    // The safe-list sits here, and only here, and the position is the whole
-    // safety argument. Both branches above have already established that Claude
-    // Code was going to raise a prompt for this call — so answering it can
-    // remove a prompt and can never enable an action that was not going to run.
+    // The safe-list runs before the wouldPrompt guess below, and that ordering
+    // was wrong the other way round. `wouldPrompt` is a *model* of when Claude
+    // Code prompts, and the model is not reliable: it says `ls -la` and
+    // `cat package.json` run silently, and they do not — they prompt. So a
+    // bare prompt appeared with no card on it, which is the product looking
+    // absent at the exact moment someone is watching it.
+    //
+    // Answering here is safe in both directions. If a prompt was coming, this
+    // removes it. If Claude Code was going to run the call anyway, `allow`
+    // changes nothing — it was already going to run. What it cannot do is
+    // enable something that was not going to happen, because `wouldAutoRun`
+    // above has already taken the genuinely-silent cases out.
     const safe = safelist.match(tool, ti, ext, v, policy);
     if (safe) return finish(policy, v, { ...ctx, approve: true, quiet: `safe-list:${safe.id}` });
+
+    if (!wouldPrompt(tool, ti)) return finish(policy, v, { ...ctx, surfaced: false, quiet: 'green:no-prompt' });
 
     return finish(policy, v, { ...ctx, surfaced: true });
   }
