@@ -1,0 +1,204 @@
+{
+  "name": "rlegend",
+  "version": "1.3.0",
+  "builtAt": "2026-08-05T14:16:31.469Z",
+  "builtBy": "rlegend package",
+  "files": [
+    {
+      "file": ".claude-plugin/plugin.json",
+      "sha256": "bfb377fe7c23a80d"
+    },
+    {
+      "file": "adapters/claude-code-post.js",
+      "sha256": "1bace57610bb02ff"
+    },
+    {
+      "file": "adapters/claude-code-session.js",
+      "sha256": "3e31965ba9dadfc6"
+    },
+    {
+      "file": "adapters/claude-code-stop.js",
+      "sha256": "28a9d6afa72fa9f7"
+    },
+    {
+      "file": "adapters/claude-code.js",
+      "sha256": "b886085d430a85c5"
+    },
+    {
+      "file": "adapters/cursor.js",
+      "sha256": "30d3e4da69779194"
+    },
+    {
+      "file": "bin/rlegend.js",
+      "sha256": "929b222bcdfd9213"
+    },
+    {
+      "file": "commands/rlegend-session.md",
+      "sha256": "8eee3d6507b0b812"
+    },
+    {
+      "file": "commands/rlegend-skills.md",
+      "sha256": "8dd486b36bc0db53"
+    },
+    {
+      "file": "COVERAGE.md",
+      "sha256": "c5112e9207df3c45"
+    },
+    {
+      "file": "hooks/hooks.json",
+      "sha256": "720303fe9b2bed79"
+    },
+    {
+      "file": "lib/audit.js",
+      "sha256": "4190be43060d8246"
+    },
+    {
+      "file": "lib/bridge.js",
+      "sha256": "65411e7d9e4ae55b"
+    },
+    {
+      "file": "lib/decide.js",
+      "sha256": "ae690d6ab18ef1d3"
+    },
+    {
+      "file": "lib/extract.js",
+      "sha256": "9e8d4bb9e1dfa8ef"
+    },
+    {
+      "file": "lib/paths.js",
+      "sha256": "025fedf3653b4100"
+    },
+    {
+      "file": "lib/policy.js",
+      "sha256": "d1601e5f6868777f"
+    },
+    {
+      "file": "lib/remember.js",
+      "sha256": "81eda5b6fdda18c3"
+    },
+    {
+      "file": "lib/render.js",
+      "sha256": "39a26505583cca3d"
+    },
+    {
+      "file": "lib/safelist.js",
+      "sha256": "1f1fdefd7b7e73df"
+    },
+    {
+      "file": "lib/session.js",
+      "sha256": "ac9302b7bb4f34e9"
+    },
+    {
+      "file": "lib/skills.js",
+      "sha256": "dc67bd3a2ad8342b"
+    },
+    {
+      "file": "policy/policy.json",
+      "sha256": "89b72198194c116b"
+    },
+    {
+      "file": "policy/strict.json",
+      "sha256": "6e91eec7205c8e16"
+    },
+    {
+      "file": "README.md",
+      "sha256": "2213dccfabf0de69"
+    },
+    {
+      "file": "test/adapter.test.js",
+      "sha256": "46ad2ffa06c5a788"
+    },
+    {
+      "file": "test/bridge.test.js",
+      "sha256": "6d11bd4006e21ac0"
+    },
+    {
+      "file": "test/demo-cards.sh",
+      "sha256": "741c7c0521b351b8"
+    },
+    {
+      "file": "test/demo.sh",
+      "sha256": "1de9d7f819b56964"
+    },
+    {
+      "file": "test/fixtures/skills/api-caller/scripts/eval.py",
+      "sha256": "7470b83a72968dc3"
+    },
+    {
+      "file": "test/fixtures/skills/api-caller/SKILL.md",
+      "sha256": "e324b7b2a65d3707"
+    },
+    {
+      "file": "test/fixtures/skills/beacon/scripts/collect.py",
+      "sha256": "9be5b77671d385b0"
+    },
+    {
+      "file": "test/fixtures/skills/beacon/SKILL.md",
+      "sha256": "bf4bdbd359cc2724"
+    },
+    {
+      "file": "test/fixtures/skills/bytecode-helper/scripts/opt.pyc",
+      "sha256": "7daa13555137ef62"
+    },
+    {
+      "file": "test/fixtures/skills/bytecode-helper/SKILL.md",
+      "sha256": "cb84160ea3e7bcab"
+    },
+    {
+      "file": "test/fixtures/skills/clean-formatter/SKILL.md",
+      "sha256": "8ef1d26636995228"
+    },
+    {
+      "file": "test/fixtures/skills/helpful-setup/SKILL.md",
+      "sha256": "e82b60a30f5726e9"
+    },
+    {
+      "file": "test/fixtures/skills/inert-url-constant/scripts/footer.py",
+      "sha256": "278bb71cd0ab63c5"
+    },
+    {
+      "file": "test/fixtures/skills/inert-url-constant/SKILL.md",
+      "sha256": "ec6ac8d02687a6b3"
+    },
+    {
+      "file": "test/fixtures/skills/invisible/SKILL.md",
+      "sha256": "b3fee9987fef9ba4"
+    },
+    {
+      "file": "test/fixtures/skills/log-shipper/scripts/ship.sh",
+      "sha256": "cb7e4b2a7b9634a9"
+    },
+    {
+      "file": "test/fixtures/skills/log-shipper/SKILL.md",
+      "sha256": "64959c0c3b4b422f"
+    },
+    {
+      "file": "test/fixtures/skills/office-namespaces/scripts/convert.py",
+      "sha256": "74b2475c65ce57f1"
+    },
+    {
+      "file": "test/fixtures/skills/office-namespaces/SKILL.md",
+      "sha256": "0870dabe71f40f97"
+    },
+    {
+      "file": "test/fixtures/skills/office-with-api/scripts/summarise.py",
+      "sha256": "436f7dbf722bf993"
+    },
+    {
+      "file": "test/fixtures/skills/office-with-api/SKILL.md",
+      "sha256": "b56e138a1e067eb9"
+    },
+    {
+      "file": "test/fixtures/skills/padded/SKILL.md",
+      "sha256": "668544183fd83155"
+    },
+    {
+      "file": "test/fixtures/skills/peeker/SKILL.md",
+      "sha256": "b298f318d5f7974f"
+    },
+    {
+      "file": "test/skills.test.js",
+      "sha256": "c58ecaf7a12ed9d5"
+    }
+  ]
+}
